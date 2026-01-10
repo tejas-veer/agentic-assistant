@@ -1,20 +1,12 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from typing import AsyncGenerator
-import os
+from app.core.config import settings
 
-database_url = os.environ.get("DATABASE_URL", "sqlite+aiosqlite:///./agentic_assist.db")
-
-if database_url.startswith("postgres://"):
-    database_url = database_url.replace("postgres://", "postgresql+asyncpg://", 1)
-elif database_url.startswith("postgresql://") and "+asyncpg" not in database_url:
-    database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
-
-is_sqlite = database_url.startswith("sqlite")
-is_debug = os.environ.get("DEBUG", "true").lower() == "true"
+is_sqlite = settings.DATABASE_URL.startswith("sqlite")
 
 engine_kwargs = {
-    "echo": is_debug,
+    "echo": settings.DEBUG,
 }
 
 if is_sqlite:
@@ -22,11 +14,11 @@ if is_sqlite:
 else:
     engine_kwargs.update({
         "pool_pre_ping": True,
-        "pool_size": 5,
-        "max_overflow": 10
+        "pool_size": 10,
+        "max_overflow": 20
     })
 
-engine = create_async_engine(database_url, **engine_kwargs)
+engine = create_async_engine(settings.DATABASE_URL, **engine_kwargs)
 
 async_session_factory = async_sessionmaker(
     engine,

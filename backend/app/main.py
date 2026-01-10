@@ -58,6 +58,11 @@ class APILoggingMiddleware(BaseHTTPMiddleware):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logger.info("=" * 50)
+    logger.info("🚀 Starting Agentic Assist API")
+    logger.info(f"📊 Database: {settings.DATABASE_URL[:30]}...")
+    logger.info(f"🔑 Gemini API Key: {'✅ Configured' if settings.GEMINI_API_KEY else '❌ NOT SET'}")
+    logger.info("=" * 50)
     await init_db()
     yield
 
