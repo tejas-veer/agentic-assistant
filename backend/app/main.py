@@ -1,81 +1,113 @@
+"""
+Agentic Assist API - Main Application Entry Point
+
+AI-powered ordering assistant system for kiosks and voice ordering.
+"""
+
+import json
+import logging
+import time
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 from starlette.middleware.base import BaseHTTPMiddleware
-import logging
-import json
-import time
+
 from app.core.config import settings
 from app.infrastructure.database.connection import init_db
+from app.infrastructure.llm import LLMFactory
 from app.api.v1.menu_router import router as menu_router
 from app.api.v1.cart_router import router as cart_router
 from app.api.v1.order_router import router as order_router
 from app.api.v1.assistant_router import router as assistant_router
 from app.api.websocket.handlers import router as websocket_router
 
-logging.basicConfig(level=logging.INFO)
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO if settings.DEBUG else logging.WARNING,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger("api")
 
 
 class APILoggingMiddleware(BaseHTTPMiddleware):
+    """Middleware to log API requests and responses."""
+    
     async def dispatch(self, request: Request, call_next):
-        if request.url.path.startswith("/api/"):
-            start_time = time.time()
-            
-            method = request.method
-            path = request.url.path
-            query = str(request.query_params) if request.query_params else ""
-            
-            body = None
-            if method in ["POST", "PUT", "PATCH"]:
-                try:
-                    body_bytes = await request.body()
-                    if body_bytes:
-                        body = json.loads(body_bytes.decode())
-                except:
-                    body = None
-                
-                async def receive():
-                    return {"type": "http.request", "body": body_bytes}
-                request = Request(request.scope, receive)
-            
-            logger.info(f"🚀 [{method}] {path} {query}")
-            if body:
-                logger.info(f"📤 Request Body: {json.dumps(body, indent=2)}")
-            
-            response = await call_next(request)
-            
-            duration = round((time.time() - start_time) * 1000, 2)
-            status = response.status_code
-            
-            status_emoji = "✅" if status < 400 else "❌"
-            logger.info(f"{status_emoji} [{method}] {path} - Status: {status} ({duration}ms)")
-            
-            return response
+        if not request.url.path.startswith("/api/"):
+            return await call_next(request)
         
-        return await call_next(request)
+        start_time = time.time()
+        method = request.method
+        path = request.url.path
+        
+        # Log request body for write operations
+        body = None
+        if method in ["POST", "PUT", "PATCH"]:
+            try:
+                body_bytes = await request.body()
+                if body_bytes:
+                    body = json.loads(body_bytes.decode())
+            except Exception:
+                body = None
+            
+            async def receive():
+                return {"type": "http.request", "body": body_bytes}
+            request = Request(request.scope, receive)
+        
+        logger.info(f"🚀 [{method}] {path}")
+        if body and settings.DEBUG:
+            logger.debug(f"📤 Request: {json.dumps(body, indent=2)}")
+        
+        response = await call_next(request)
+        
+        duration = round((time.time() - start_time) * 1000, 2)
+        status = response.status_code
+        emoji = "✅" if status < 400 else "❌"
+        logger.info(f"{emoji} [{method}] {path} - {status} ({duration}ms)")
+        
+        return response
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Application lifespan manager."""
+    
+    # === STARTUP ===
     logger.info("=" * 50)
-    logger.info("🚀 Starting Agentic Assist API")
-    logger.info(f"📊 Database: {settings.DATABASE_URL[:30]}...")
-    logger.info(f"🔑 Gemini API Key: {'✅ Configured' if settings.GEMINI_API_KEY else '❌ NOT SET'}")
+    logger.info(f"🚀 {settings.APP_NAME} v{settings.APP_VERSION}")
     logger.info("=" * 50)
+    
+    # Initialize database
     await init_db()
+    logger.info("✅ Database initialized")
+    
+    # Initialize LLM
+    if LLMFactory.initialize():
+        logger.info("✅ LLM provider ready")
+    else:
+        logger.warning("⚠️ LLM not configured - AI features disabled")
+    
+    logger.info("🎉 Application started!")
+    logger.info("=" * 50)
+    
     yield
+    
+    # === SHUTDOWN ===
+    logger.info("👋 Shutting down...")
+    LLMFactory.reset()
 
 
+# Create FastAPI application
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="AI-powered ordering assistant system for kiosks, voice, and call agents",
+    description="AI-powered ordering assistant for kiosks and voice ordering",
     lifespan=lifespan
 )
 
+# Add middleware
 app.add_middleware(APILoggingMiddleware)
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -84,15 +116,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(menu_router, prefix="/api/v1")
-app.include_router(cart_router, prefix="/api/v1")
-app.include_router(order_router, prefix="/api/v1")
-app.include_router(assistant_router, prefix="/api/v1")
-app.include_router(websocket_router)
+# Include routers
+app.include_router(menu_router, prefix="/api/v1", tags=["Menu"])
+app.include_router(cart_router, prefix="/api/v1", tags=["Cart"])
+app.include_router(order_router, prefix="/api/v1", tags=["Orders"])
+app.include_router(assistant_router, prefix="/api/v1", tags=["Assistant"])
+app.include_router(websocket_router, tags=["WebSocket"])
 
 
-@app.get("/")
+@app.get("/", tags=["Health"])
 async def root():
+    """API root - basic info."""
     return {
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
@@ -100,7 +134,10 @@ async def root():
     }
 
 
-@app.get("/health")
+@app.get("/health", tags=["Health"])
 async def health_check():
-    return {"status": "healthy"}
-
+    """Health check endpoint."""
+    return {
+        "status": "healthy",
+        "llm_available": LLMFactory.is_available()
+    }
