@@ -10,7 +10,7 @@ import { formatPrice, formatTime, getStatusColor } from '@/lib/utils'
 export default function DashboardPage() {
   const { setPendingOrders } = useAdminStore()
 
-  const { data: orders, refetch } = useQuery({
+  const { data: orders } = useQuery({
     queryKey: ['pending-orders'],
     queryFn: orderApi.getPendingOrders,
     refetchInterval: 5000,

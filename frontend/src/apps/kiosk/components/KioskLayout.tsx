@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShoppingCart, Mic, Sparkles, X } from 'lucide-react'
+import { ShoppingCart, Mic, Sparkles } from 'lucide-react'
 import { useKioskStore } from '@/lib/store'
 import VoiceAssistant from './VoiceAssistant'
 
