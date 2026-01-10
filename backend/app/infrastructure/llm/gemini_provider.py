@@ -136,7 +136,7 @@ For add_to_cart: action_params = {"item_name": "name", "quantity": 1}
             messages,
             temperature
         )
-        
+        logger.info(f"🤖 [-----------GEMINI----------------] Response: {result}")
         return self._parse_json_response(result)
     
     def _build_contents(
