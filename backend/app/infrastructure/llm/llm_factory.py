@@ -33,6 +33,10 @@ class LLMProvider(Protocol):
     ) -> Dict[str, Any]:
         """Generate a JSON response."""
         ...
+    
+    async def close(self) -> None:
+        """Close the provider and release resources."""
+        ...
 
 
 class LLMFactory:
@@ -55,18 +59,20 @@ class LLMFactory:
         if settings.GEMINI_API_KEY:
             try:
                 from .gemini_provider import GeminiProvider
+                logger.info("[Tejas Test] Initializing Gemini provider...")
                 cls._instance = GeminiProvider(api_key=settings.GEMINI_API_KEY)
-                logger.info("✅ Gemini LLM initialized")
+                logger.info("[Tejas Test] ✅ Gemini LLM initialized successfully")
                 return True
             except Exception as e:
-                logger.error(f"❌ Failed to initialize Gemini: {e}")
+                logger.error(f"[Tejas Test] ❌ Failed to initialize Gemini: {e}")
         
-        logger.warning("⚠️ No LLM provider configured")
+        logger.warning("[Tejas Test] ⚠️ No LLM provider configured")
         return False
     
     @classmethod
     def get_provider(cls) -> Optional["LLMProvider"]:
         """Get the initialized LLM provider instance."""
+        logger.info("[Tejas Test] Getting LLM provider instance")
         if not cls._initialized:
             cls.initialize()
         return cls._instance
@@ -79,8 +85,21 @@ class LLMFactory:
         return cls._instance is not None
     
     @classmethod
+    async def shutdown(cls) -> None:
+        """Shutdown the LLM provider and close connections."""
+        logger.info("[Tejas Test] Shutting down LLM provider...")
+        if cls._instance is not None:
+            try:
+                await cls._instance.close()
+                logger.info("[Tejas Test] ✅ LLM provider closed")
+            except Exception as e:
+                logger.error(f"[Tejas Test] ❌ Error closing LLM provider: {e}")
+        cls._instance = None
+        cls._initialized = False
+    
+    @classmethod
     def reset(cls) -> None:
-        """Reset the factory. Useful for testing or shutdown."""
+        """Reset the factory. Useful for testing."""
         cls._instance = None
         cls._initialized = False
 

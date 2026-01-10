@@ -95,7 +95,7 @@ async def lifespan(app: FastAPI):
     
     # === SHUTDOWN ===
     logger.info("👋 Shutting down...")
-    LLMFactory.reset()
+    await LLMFactory.shutdown()
 
 
 # Create FastAPI application

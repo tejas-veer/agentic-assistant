@@ -113,11 +113,11 @@ class AssistantService:
         Returns:
             Response dict with 'response', 'transcript', 'action', 'action_result'
         """
-        logger.info("=" * 60)
-        logger.info("💬 [ASSISTANT] Processing text input")
-        logger.info(f"📤 Session: {session_id}")
-        logger.info(f"📤 User message: {text}")
-        logger.info(f"🤖 LLM available: {self.is_llm_available}")
+        logger.info("[Tejas Test] " + "=" * 50)
+        logger.info("[Tejas Test] 💬 Processing text input")
+        logger.info(f"[Tejas Test] 📤 Session: {session_id}")
+        logger.info(f"[Tejas Test] 📤 User message: {text}")
+        logger.info(f"[Tejas Test] 🤖 LLM available: {self.is_llm_available}")
         
         # Save user message
         await self._save_message(session_id, "user", text)
@@ -128,15 +128,14 @@ class AssistantService:
         cart_summary = self._format_cart_summary(cart) if cart else "Cart is empty."
         
         log_cart = cart_summary[:100] + "..." if len(cart_summary) > 100 else cart_summary
-        logger.info(f"🛒 Cart status: {log_cart}")
+        logger.info(f"[Tejas Test] 🛒 Cart status: {log_cart}")
         
-        # Get conversation history
         messages = await self._get_conversation_history(session_id)
-        logger.info(f"📜 Conversation history: {len(messages)} messages")
+        logger.info(f"[Tejas Test] 📜 Conversation history: {len(messages)} messages")
         
-        # Call LLM
+        logger.info("[Tejas Test] 🤖 Calling LLM...")
         response = await self._call_llm(menu_text, cart_summary, messages, text)
-        logger.info(f"🤖 LLM Response: {json.dumps(response, indent=2)}")
+        logger.info(f"[Tejas Test] 🤖 LLM Response: {json.dumps(response, indent=2)}")
         
         # Execute action if any
         action_result = await self._execute_action(
@@ -148,7 +147,7 @@ class AssistantService:
         
         if action_result:
             log_result = json.dumps(action_result, indent=2)[:200]
-            logger.info(f"⚡ Action result: {log_result}")
+            logger.info(f"[Tejas Test] ⚡ Action result: {log_result}")
         
         # Prepare final response
         assistant_response = response.get("response", "I'm sorry, I couldn't process that.")
@@ -166,8 +165,8 @@ class AssistantService:
         }
         
         log_response = assistant_response[:100] + "..." if len(assistant_response) > 100 else assistant_response
-        logger.info(f"📥 Final response: {log_response}")
-        logger.info("=" * 60)
+        logger.info(f"[Tejas Test] 📥 Final response: {log_response}")
+        logger.info("[Tejas Test] " + "=" * 50)
         
         return result
     
@@ -195,7 +194,7 @@ class AssistantService:
         """
         # Check if LLM is available
         if not self.is_llm_available:
-            logger.warning("⚠️ LLM not available - returning fallback response")
+            logger.warning("[Tejas Test] ⚠️ LLM not available - returning fallback response")
             return {
                 "response": "AI assistant is not configured. Please use the menu to order manually, or contact staff for help.",
                 "action": "none",
@@ -212,9 +211,10 @@ class AssistantService:
         messages.append({"role": "user", "content": current_message})
         
         try:
+            logger.info("[Tejas Test] Calling LLM generate_with_json...")
             return await self.llm.generate_with_json(system_prompt, messages)
         except Exception as e:
-            logger.error(f"❌ LLM error: {e}")
+            logger.error(f"[Tejas Test] ❌ LLM error: {e}")
             error_msg = str(e)
             
             # Handle rate limiting

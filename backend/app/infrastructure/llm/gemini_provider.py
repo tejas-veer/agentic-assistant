@@ -36,8 +36,21 @@ class GeminiProvider:
         
         self.api_key = api_key.strip()
         self.model = model or self.DEFAULT_MODEL
+        self._client: httpx.AsyncClient = None
         
-        logger.info(f"GeminiProvider initialized with model: {self.model}")
+        logger.info(f"[Tejas Test] GeminiProvider initialized with model: {self.model}")
+    
+    async def _get_client(self) -> httpx.AsyncClient:
+        if self._client is None:
+            logger.info("[Tejas Test] Creating new HTTP client")
+            self._client = httpx.AsyncClient(timeout=30.0)
+        return self._client
+    
+    async def close(self):
+        if self._client is not None:
+            logger.info("[Tejas Test] Closing HTTP client")
+            await self._client.aclose()
+            self._client = None
     
     async def generate(
         self,
@@ -61,50 +74,50 @@ class GeminiProvider:
         """
         contents = self._build_contents(system_prompt, messages)
         
-        logger.info("=" * 60)
-        logger.info("🤖 [GEMINI] Sending request")
-        logger.info(f"📤 Model: {self.model}")
-        logger.info(f"📤 Messages: {len(messages)}")
+        logger.info("[Tejas Test] " + "=" * 50)
+        logger.info("[Tejas Test] 🤖 Sending request to Gemini")
+        logger.info(f"[Tejas Test] 📤 Model: {self.model}")
+        logger.info(f"[Tejas Test] 📤 Messages count: {len(messages)}")
         if messages:
             last_msg = messages[-1].get('content', '')[:100]
-            logger.info(f"📤 Last message: {last_msg}...")
+            logger.info(f"[Tejas Test] 📤 Last message: {last_msg}...")
         
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{self.BASE_URL}/models/{self.model}:generateContent",
-                headers={
-                    "Content-Type": "application/json",
-                    "x-goog-api-key": self.api_key
-                },
-                json={
-                    "contents": contents,
-                    "generationConfig": {
-                        "temperature": temperature,
-                        "maxOutputTokens": 1024,
-                    }
-                },
-                timeout=30.0
-            )
-            
-            if response.status_code != 200:
-                logger.error(f"❌ [GEMINI] API error: {response.status_code}")
-                logger.error(f"❌ [GEMINI] Response: {response.text}")
-                raise Exception(f"Gemini API error: {response.status_code} - {response.text}")
-            
-            data = response.json()
-            
-            if "candidates" not in data or len(data["candidates"]) == 0:
-                logger.error(f"❌ [GEMINI] No candidates: {data}")
-                raise Exception("No response from Gemini")
-            
-            text = data["candidates"][0]["content"]["parts"][0]["text"]
-            
-            log_text = text[:200] + "..." if len(text) > 200 else text
-            logger.info(f"✅ [GEMINI] Response received")
-            logger.info(f"📥 Response: {log_text}")
-            logger.info("=" * 60)
-            
-            return text
+        client = await self._get_client()
+        response = await client.post(
+            f"{self.BASE_URL}/models/{self.model}:generateContent",
+            headers={
+                "Content-Type": "application/json",
+                "x-goog-api-key": self.api_key
+            },
+            json={
+                "contents": contents,
+                "generationConfig": {
+                    "temperature": temperature,
+                    "maxOutputTokens": 1024,
+                }
+            }
+        )
+        
+        if response.status_code != 200:
+            logger.error(f"[Tejas Test] ❌ API error: {response.status_code}")
+            logger.error(f"[Tejas Test] ❌ Response: {response.text}")
+            raise Exception(f"Gemini API error: {response.status_code} - {response.text}")
+        
+        logger.info(f"[Tejas Test] ✅ API call successful, status: {response.status_code}")
+        data = response.json()
+        
+        if "candidates" not in data or len(data["candidates"]) == 0:
+            logger.error(f"[Tejas Test] ❌ No candidates in response: {data}")
+            raise Exception("No response from Gemini")
+        
+        text = data["candidates"][0]["content"]["parts"][0]["text"]
+        
+        log_text = text[:200] + "..." if len(text) > 200 else text
+        logger.info(f"[Tejas Test] ✅ Response received")
+        logger.info(f"[Tejas Test] 📥 Response: {log_text}")
+        logger.info("[Tejas Test] " + "=" * 50)
+        
+        return text
     
     async def generate_with_json(
         self,
@@ -136,7 +149,7 @@ For add_to_cart: action_params = {"item_name": "name", "quantity": 1}
             messages,
             temperature
         )
-        logger.info(f"🤖 [-----------GEMINI----------------] Response: {result}")
+        logger.info(f"[Tejas Test] 🤖 Raw JSON response: {result}")
         return self._parse_json_response(result)
     
     def _build_contents(
@@ -145,6 +158,7 @@ For add_to_cart: action_params = {"item_name": "name", "quantity": 1}
         messages: List[Dict[str, str]]
     ) -> List[Dict]:
         """Build the contents array for Gemini API."""
+        logger.info(f"[Tejas Test] Building contents with {len(messages)} messages")
         contents = [
             {
                 "role": "user",
@@ -167,6 +181,7 @@ For add_to_cart: action_params = {"item_name": "name", "quantity": 1}
     
     def _parse_json_response(self, result: str) -> Dict[str, Any]:
         """Parse JSON from the model response, handling various formats."""
+        logger.info("[Tejas Test] Parsing JSON response")
         result = result.strip()
         
         # Remove markdown code blocks
@@ -187,15 +202,17 @@ For add_to_cart: action_params = {"item_name": "name", "quantity": 1}
             try:
                 parsed = json.loads(json_str)
                 if "response" in parsed:
+                    logger.info(f"[Tejas Test] ✅ Parsed JSON successfully, action: {parsed.get('action', 'none')}")
                     return parsed
             except json.JSONDecodeError:
-                pass
+                logger.warning("[Tejas Test] ⚠️ JSON decode failed for extracted string")
         
-        # Try direct parse
         try:
-            return json.loads(result)
+            parsed = json.loads(result)
+            logger.info(f"[Tejas Test] ✅ Direct JSON parse successful")
+            return parsed
         except json.JSONDecodeError:
-            # Fallback: treat as plain text
+            logger.warning("[Tejas Test] ⚠️ Fallback: treating as plain text")
             clean_text = result
             if '{' in clean_text:
                 clean_text = clean_text[:clean_text.find('{')].strip()
