@@ -1,40 +1,82 @@
 from enum import Enum
 
 
-class OrderStatus(str, Enum):
-    PENDING = "pending"
+class BusinessType(str, Enum):
+    RESTAURANT = "restaurant"
+    HOTEL = "hotel"
+    CLINIC = "clinic"
+
+
+class PaymentFlow(str, Enum):
+    PRE_SERVICE = "pre_service"
+    POST_SERVICE = "post_service"
+
+
+class ResourceType(str, Enum):
+    TABLE = "table"
+    ROOM = "room"
+    SLOT = "slot"
+
+
+class ResourceStatus(str, Enum):
+    AVAILABLE = "available"
+    ASSIGNED = "assigned"
+
+
+class CartStatus(str, Enum):
+    DRAFT = "draft"
     CONFIRMED = "confirmed"
-    PREPARING = "preparing"
+    IN_PROGRESS = "in_progress"
     READY = "ready"
-    DELIVERED = "delivered"
+    COMPLETED = "completed"
+    ABANDONED = "abandoned"
     CANCELLED = "cancelled"
 
 
-class PaymentStatus(str, Enum):
+class CartItemStatus(str, Enum):
+    DRAFT = "draft"
     PENDING = "pending"
+    PREPARING = "preparing"
+    READY = "ready"
+    SERVED = "served"
+    ABANDONED = "abandoned"
+    CANCELLED = "cancelled"
+
+
+class BillStatus(str, Enum):
+    PENDING = "pending"
+    PARTIAL = "partial"
     PAID = "paid"
-    FAILED = "failed"
+    REFUNDED = "refunded"
+
+
+class BillItemStatus(str, Enum):
+    UNPAID = "unpaid"
+    PAID = "paid"
     REFUNDED = "refunded"
 
 
 class PaymentMethod(str, Enum):
     CASH = "cash"
-    CARD = "card"
     UPI = "upi"
-    WALLET = "wallet"
+    CARD = "card"
 
 
 class UserRole(str, Enum):
-    CUSTOMER = "customer"
     ADMIN = "admin"
     STAFF = "staff"
 
 
-class DeviceType(str, Enum):
-    KIOSK = "kiosk"
-    TABLET = "tablet"
-    WEB = "web"
-    PHONE = "phone"
+class OrderSource(str, Enum):
+    APP = "app"
+    VOICE = "voice"
+    CHAT = "chat"
+
+
+class IntentType(str, Enum):
+    FOOD_ORDER = "food_order"
+    BOOKING = "booking"
+    APPOINTMENT = "appointment"
 
 
 class AssistantType(str, Enum):
@@ -48,3 +90,20 @@ class ConversationStatus(str, Enum):
     COMPLETED = "completed"
     ABANDONED = "abandoned"
 
+
+class DeviceType(str, Enum):
+    KIOSK = "kiosk"
+    TABLET = "tablet"
+    WEB = "web"
+    PHONE = "phone"
+
+
+class AddressType(str, Enum):
+    HOME = "home"
+    WORK = "work"
+    OTHER = "other"
+
+
+class TeamMemberStatus(str, Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"

@@ -1,10 +1,9 @@
 """
-SQLAlchemy Models for the merged schema
-Copy this to: backend/app/infrastructure/database/models.py
-
-Standard integer PKs and FKs (no string-based readable IDs)
+SQLAlchemy Models for Multi-Tenant Schema
+All tables use UUID (String 36) as primary keys
 """
 
+import uuid
 from sqlalchemy import Column, String, DateTime, Boolean, Integer, Numeric, Text, JSON, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -17,10 +16,14 @@ from app.domain.shared.enums import (
 )
 
 
+def generate_uuid():
+    return str(uuid.uuid4())
+
+
 class BusinessModel(Base):
     __tablename__ = "businesses"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
     name = Column(String(200), nullable=False)
     type = Column(SQLEnum(BusinessType), nullable=False)
     intents = Column(String(100))
@@ -46,8 +49,8 @@ class BusinessModel(Base):
 class ResourceModel(Base):
     __tablename__ = "resources"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    business_id = Column(Integer, ForeignKey("businesses.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False)
     type = Column(SQLEnum(ResourceType), nullable=False)
     name = Column(String(200), nullable=False)
     capacity = Column(Integer, default=1)
@@ -64,8 +67,8 @@ class ResourceModel(Base):
 class CategoryModel(Base):
     __tablename__ = "categories"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    business_id = Column(Integer, ForeignKey("businesses.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False)
     name = Column(String(100), nullable=False)
     description = Column(Text)
     image_url = Column(String(500))
@@ -81,9 +84,9 @@ class CategoryModel(Base):
 class MenuModel(Base):
     __tablename__ = "menu"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    business_id = Column(Integer, ForeignKey("businesses.id"), nullable=False)
-    category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False)
+    category_id = Column(String(36), ForeignKey("categories.id"), nullable=False)
     name = Column(String(200), nullable=False)
     description = Column(Text)
     price = Column(Numeric(10, 2), nullable=False)
@@ -104,7 +107,7 @@ class MenuModel(Base):
 class UserModel(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
     name = Column(String(200), nullable=False)
     phone = Column(String(20))
     email = Column(String(255))
@@ -124,9 +127,9 @@ class UserModel(Base):
 class TeamMemberModel(Base):
     __tablename__ = "team_members"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    business_id = Column(Integer, ForeignKey("businesses.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     role = Column(SQLEnum(UserRole), default=UserRole.STAFF)
     status = Column(SQLEnum(TeamMemberStatus), default=TeamMemberStatus.ACTIVE)
     is_active = Column(Boolean, default=True)
@@ -141,8 +144,8 @@ class TeamMemberModel(Base):
 class AddressModel(Base):
     __tablename__ = "addresses"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     type = Column(SQLEnum(AddressType), nullable=False)
     address_line1 = Column(String(500), nullable=False)
     city = Column(String(100), nullable=False)
@@ -158,13 +161,13 @@ class AddressModel(Base):
 class CartModel(Base):
     __tablename__ = "carts"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
     session_id = Column(String(100))
     device_id = Column(String(100))
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    business_id = Column(Integer, ForeignKey("businesses.id"), nullable=False)
+    user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
+    business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False)
     intent = Column(SQLEnum(IntentType), default=IntentType.FOOD_ORDER)
-    resource_id = Column(Integer, ForeignKey("resources.id"), nullable=True)
+    resource_id = Column(String(36), ForeignKey("resources.id"), nullable=True)
     customer_name = Column(String(200))
     customer_phone = Column(String(20))
     item_count = Column(Integer, default=0)
@@ -175,7 +178,7 @@ class CartModel(Base):
     source = Column(SQLEnum(OrderSource), default=OrderSource.APP)
     notes = Column(Text)
     estimated_ready_time = Column(Integer)
-    assistant_session_id = Column(Integer, ForeignKey("assistant_sessions.id"), nullable=True)
+    assistant_session_id = Column(String(36), ForeignKey("assistant_sessions.id"), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
@@ -191,16 +194,16 @@ class CartModel(Base):
 class CartItemModel(Base):
     __tablename__ = "cart_items"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    cart_id = Column(Integer, ForeignKey("carts.id"), nullable=False)
-    item_id = Column(Integer, ForeignKey("menu.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    cart_id = Column(String(36), ForeignKey("carts.id"), nullable=False)
+    item_id = Column(String(36), ForeignKey("menu.id"), nullable=False)
     item_name = Column(String(200), nullable=False)
     quantity = Column(Integer, default=1)
     unit_price = Column(Numeric(10, 2), nullable=False)
     total_price = Column(Numeric(10, 2), nullable=False)
     notes = Column(Text)
     status = Column(SQLEnum(CartItemStatus), default=CartItemStatus.DRAFT)
-    prepared_by = Column(Integer, ForeignKey("team_members.id"), nullable=True)
+    prepared_by = Column(String(36), ForeignKey("team_members.id"), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
@@ -214,9 +217,9 @@ class CartItemModel(Base):
 class BillModel(Base):
     __tablename__ = "bills"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    cart_id = Column(Integer, ForeignKey("carts.id"), nullable=False)
-    business_id = Column(Integer, ForeignKey("businesses.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    cart_id = Column(String(36), ForeignKey("carts.id"), nullable=False)
+    business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False)
     subtotal = Column(Numeric(10, 2), default=0)
     tax_percent = Column(Numeric(5, 2), default=0)
     tax_amount = Column(Numeric(10, 2), default=0)
@@ -239,14 +242,14 @@ class BillModel(Base):
 class BillItemModel(Base):
     __tablename__ = "bill_items"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    bill_id = Column(Integer, ForeignKey("bills.id"), nullable=False)
-    cart_item_id = Column(Integer, ForeignKey("cart_items.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    bill_id = Column(String(36), ForeignKey("bills.id"), nullable=False)
+    cart_item_id = Column(String(36), ForeignKey("cart_items.id"), nullable=False)
     item_name = Column(String(200), nullable=False)
     quantity = Column(Integer, default=1)
     unit_price = Column(Numeric(10, 2), nullable=False)
     total_price = Column(Numeric(10, 2), nullable=False)
-    paid_by_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    paid_by_user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
     status = Column(SQLEnum(BillItemStatus), default=BillItemStatus.UNPAID)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -260,8 +263,8 @@ class BillItemModel(Base):
 class FAQModel(Base):
     __tablename__ = "faqs"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    business_id = Column(Integer, ForeignKey("businesses.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False)
     question = Column(Text, nullable=False)
     answer = Column(Text, nullable=False)
     is_active = Column(Boolean, default=True)
@@ -274,7 +277,7 @@ class FAQModel(Base):
 class AssistantSessionModel(Base):
     __tablename__ = "assistant_sessions"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
     session_id = Column(String(100), unique=True, nullable=False)
     assistant_type = Column(SQLEnum(AssistantType), nullable=False)
     device_id = Column(String(100))
@@ -294,8 +297,8 @@ class AssistantSessionModel(Base):
 class ConversationMessageModel(Base):
     __tablename__ = "conversation_messages"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    session_id = Column(Integer, ForeignKey("assistant_sessions.id"), nullable=False)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
+    session_id = Column(String(36), ForeignKey("assistant_sessions.id"), nullable=False)
     role = Column(String(20), nullable=False)
     content = Column(Text, nullable=False)
     audio_url = Column(String(500))
@@ -310,7 +313,7 @@ class ConversationMessageModel(Base):
 class DeviceModel(Base):
     __tablename__ = "devices"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String(36), primary_key=True, default=generate_uuid)
     device_id = Column(String(100), unique=True, nullable=False)
     name = Column(String(200))
     device_type = Column(SQLEnum(DeviceType))

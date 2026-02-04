@@ -1,13 +1,13 @@
 # Entity Relationship Diagram (Merged Schema)
 
-> **Updated:** Standard integer PKs and FKs
+> **Updated:** UUID (String 36) primary keys for all tables
 
 ## Mermaid ER Diagram
 
 ```mermaid
 erDiagram
     Businesses {
-        int id PK
+        uuid id PK
         string name
         string type
         string intents
@@ -23,8 +23,8 @@ erDiagram
     }
 
     Resources {
-        int id PK
-        int business_id FK
+        uuid id PK
+        uuid business_id FK
         string type
         string name
         int capacity
@@ -36,8 +36,8 @@ erDiagram
     }
 
     Categories {
-        int id PK
-        int business_id FK
+        uuid id PK
+        uuid business_id FK
         string name
         string description
         string image_url
@@ -48,9 +48,9 @@ erDiagram
     }
 
     Menu {
-        int id PK
-        int business_id FK
-        int category_id FK
+        uuid id PK
+        uuid business_id FK
+        uuid category_id FK
         string name
         string description
         decimal price
@@ -65,8 +65,8 @@ erDiagram
     }
 
     FAQ {
-        int id PK
-        int business_id FK
+        uuid id PK
+        uuid business_id FK
         string question
         string answer
         boolean is_active
@@ -75,7 +75,7 @@ erDiagram
     }
 
     Users {
-        int id PK
+        uuid id PK
         string name
         string phone
         string email
@@ -88,9 +88,9 @@ erDiagram
     }
 
     TeamMembers {
-        int id PK
-        int business_id FK
-        int user_id FK
+        uuid id PK
+        uuid business_id FK
+        uuid user_id FK
         string role
         string status
         boolean is_active
@@ -99,8 +99,8 @@ erDiagram
     }
 
     Addresses {
-        int id PK
-        int user_id FK
+        uuid id PK
+        uuid user_id FK
         string type
         string address_line1
         string city
@@ -112,13 +112,13 @@ erDiagram
     }
 
     Cart {
-        int id PK
+        uuid id PK
         string session_id
         string device_id
-        int user_id FK
-        int business_id FK
+        uuid user_id FK
+        uuid business_id FK
         string intent
-        int resource_id FK
+        uuid resource_id FK
         string customer_name
         string customer_phone
         int item_count
@@ -129,32 +129,32 @@ erDiagram
         string source
         string notes
         int estimated_ready_time
-        int assistant_session_id FK
+        uuid assistant_session_id FK
         boolean is_active
         datetime created_at
         datetime updated_at
     }
 
     CartItems {
-        int id PK
-        int cart_id FK
-        int item_id FK
+        uuid id PK
+        uuid cart_id FK
+        uuid item_id FK
         string item_name
         int quantity
         decimal unit_price
         decimal total_price
         string notes
         string status
-        int prepared_by FK
+        uuid prepared_by FK
         boolean is_active
         datetime created_at
         datetime updated_at
     }
 
     Bills {
-        int id PK
-        int cart_id FK
-        int business_id FK
+        uuid id PK
+        uuid cart_id FK
+        uuid business_id FK
         decimal subtotal
         decimal tax_percent
         decimal tax_amount
@@ -171,14 +171,14 @@ erDiagram
     }
 
     BillItems {
-        int id PK
-        int bill_id FK
-        int cart_item_id FK
+        uuid id PK
+        uuid bill_id FK
+        uuid cart_item_id FK
         string item_name
         int quantity
         decimal unit_price
         decimal total_price
-        int paid_by_user_id FK
+        uuid paid_by_user_id FK
         string status
         boolean is_active
         datetime created_at
@@ -186,7 +186,7 @@ erDiagram
     }
 
     AssistantSessions {
-        int id PK
+        uuid id PK
         string session_id UK
         string assistant_type
         string device_id
@@ -201,8 +201,8 @@ erDiagram
     }
 
     ConversationMessages {
-        int id PK
-        int session_id FK
+        uuid id PK
+        uuid session_id FK
         string role
         string content
         string audio_url
@@ -213,7 +213,7 @@ erDiagram
     }
 
     Devices {
-        int id PK
+        uuid id PK
         string device_id UK
         string name
         string device_type
@@ -300,20 +300,20 @@ AssistantSessions (1) ──── (N) ConversationMessages
 
 ## Tables Summary (15 Total)
 
-| # | Table | Type | FK References |
-|---|-------|------|---------------|
-| 1 | Businesses | NEW | - |
-| 2 | Resources | NEW | business_id |
-| 3 | Categories | EXISTING+ENHANCED | business_id |
-| 4 | Menu | MERGED | business_id, category_id |
-| 5 | Users | MERGED | - |
-| 6 | TeamMembers | NEW | business_id, user_id |
-| 7 | Addresses | NEW+ENHANCED | user_id |
-| 8 | Cart | MERGED | user_id, business_id, resource_id, assistant_session_id |
-| 9 | CartItems | NEW | cart_id, item_id, prepared_by |
-| 10 | Bills | NEW | cart_id, business_id |
-| 11 | BillItems | NEW | bill_id, cart_item_id, paid_by_user_id |
-| 12 | FAQ | NEW | business_id |
-| 13 | AssistantSessions | EXISTING | - |
-| 14 | ConversationMessages | EXISTING | session_id |
-| 15 | Devices | EXISTING | - |
+| # | Table | Type | PK Type | FK References |
+|---|-------|------|---------|---------------|
+| 1 | Businesses | NEW | UUID | - |
+| 2 | Resources | NEW | UUID | business_id |
+| 3 | Categories | EXISTING+ENHANCED | UUID | business_id |
+| 4 | Menu | MERGED | UUID | business_id, category_id |
+| 5 | Users | MERGED | UUID | - |
+| 6 | TeamMembers | NEW | UUID | business_id, user_id |
+| 7 | Addresses | NEW+ENHANCED | UUID | user_id |
+| 8 | Cart | MERGED | UUID | user_id, business_id, resource_id, assistant_session_id |
+| 9 | CartItems | NEW | UUID | cart_id, item_id, prepared_by |
+| 10 | Bills | NEW | UUID | cart_id, business_id |
+| 11 | BillItems | NEW | UUID | bill_id, cart_item_id, paid_by_user_id |
+| 12 | FAQ | NEW | UUID | business_id |
+| 13 | AssistantSessions | EXISTING | UUID | - |
+| 14 | ConversationMessages | EXISTING | UUID | session_id |
+| 15 | Devices | EXISTING | UUID | - |

@@ -1,24 +1,28 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from decimal import Decimal
-from app.domain.shared.enums import OrderStatus, PaymentStatus, PaymentMethod, AssistantType
+from app.domain.shared.enums import (
+    CartStatus, CartItemStatus, BillStatus, PaymentMethod, 
+    AssistantType, OrderSource, IntentType
+)
 
 
 class CategoryCreate(BaseModel):
+    business_id: str
     name: str
     description: Optional[str] = None
     image_url: Optional[str] = None
 
 
 class MenuItemCreate(BaseModel):
+    business_id: str
+    category_id: str
     name: str
     price: Decimal
-    category_id: str
     description: Optional[str] = None
     image_url: Optional[str] = None
     preparation_time_mins: int = 10
-    tags: List[str] = Field(default_factory=list)
-    customizations: List[Dict[str, Any]] = Field(default_factory=list)
+    quantity: int = 100
 
 
 class MenuItemUpdate(BaseModel):
@@ -26,44 +30,68 @@ class MenuItemUpdate(BaseModel):
     price: Optional[Decimal] = None
     description: Optional[str] = None
     image_url: Optional[str] = None
-    is_available: Optional[bool] = None
+    available: Optional[bool] = None
     preparation_time_mins: Optional[int] = None
-    tags: Optional[List[str]] = None
-    customizations: Optional[List[Dict[str, Any]]] = None
+    quantity: Optional[int] = None
+
+
+class CartCreate(BaseModel):
+    business_id: str
+    session_id: Optional[str] = None
+    device_id: Optional[str] = None
+    user_id: Optional[str] = None
+    resource_id: Optional[str] = None
+    customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
+    source: OrderSource = OrderSource.APP
+    intent: IntentType = IntentType.FOOD_ORDER
 
 
 class CartItemAdd(BaseModel):
-    menu_item_id: str
+    item_id: str
     quantity: int = 1
-    customizations: List[str] = Field(default_factory=list)
-    special_instructions: Optional[str] = None
-
-
-class CartItemUpdate(BaseModel):
-    menu_item_id: str
-    quantity: int
-
-
-class OrderCreate(BaseModel):
-    session_id: str
-    table_number: Optional[str] = None
-    customer_name: Optional[str] = None
-    customer_phone: Optional[str] = None
-    payment_method: Optional[PaymentMethod] = None
     notes: Optional[str] = None
 
 
-class OrderStatusUpdate(BaseModel):
-    status: OrderStatus
+class CartItemUpdate(BaseModel):
+    cart_item_id: str
+    quantity: int
 
 
-class OrderConfirm(BaseModel):
+class CartConfirm(BaseModel):
+    customer_name: Optional[str] = None
+    customer_phone: Optional[str] = None
+    resource_id: Optional[str] = None
     estimated_ready_time: Optional[int] = None
 
 
-class PaymentUpdate(BaseModel):
-    payment_status: PaymentStatus
-    payment_method: Optional[PaymentMethod] = None
+class CartStatusUpdate(BaseModel):
+    status: CartStatus
+
+
+class CartItemStatusUpdate(BaseModel):
+    status: CartItemStatus
+    prepared_by: Optional[str] = None
+
+
+class BillCreate(BaseModel):
+    cart_id: str
+    tax_percent: Decimal = Decimal("5.0")
+    discount_amount: Decimal = Decimal("0")
+    service_charge: Decimal = Decimal("0")
+
+
+class PaymentProcess(BaseModel):
+    amount: Decimal
+    payment_mode: PaymentMethod
+    payment_ref: Optional[str] = None
+
+
+class SplitPayment(BaseModel):
+    bill_item_ids: List[str]
+    paid_by_user_id: str
+    amount: Decimal
+    payment_mode: PaymentMethod
 
 
 class AssistantSessionCreate(BaseModel):
@@ -76,6 +104,7 @@ class AssistantTextInput(BaseModel):
     session_id: str
     text: str
     device_id: str
+    business_id: str = "1"
 
 
 class ApiResponse(BaseModel):
@@ -83,4 +112,3 @@ class ApiResponse(BaseModel):
     data: Optional[Any] = None
     error: Optional[str] = None
     message: Optional[str] = None
-

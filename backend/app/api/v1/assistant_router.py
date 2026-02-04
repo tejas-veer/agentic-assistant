@@ -30,7 +30,8 @@ async def process_text(
     result = await service.process_text_input(
         session_id=data.session_id,
         text=data.text,
-        device_id=data.device_id
+        device_id=data.device_id,
+        business_id=data.business_id
     )
     return ApiResponse(success=True, data=result)
 

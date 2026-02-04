@@ -7,6 +7,8 @@ This guide helps migrate from the existing prototype at:
 
 To the new schema defined in this folder.
 
+> **Note:** All tables use UUID (String 36) as primary keys.
+
 ---
 
 ## Current vs New Schema Comparison
@@ -20,7 +22,7 @@ To the new schema defined in this folder.
 | `carts` table (session-based) | Merged into `Cart` | **MERGE** |
 | No billing details | `Bills` + `BillItems` | **ADD** |
 | Basic `users` table | Enhanced `Users` + `TeamMembers` | **UPDATE + ADD** |
-| `categories` + `menu_items` | Single `Menu` table | **SIMPLIFY** |
+| `categories` + `menu_items` | `Categories` + `Menu` tables | **UPDATE** |
 
 ---
 
@@ -38,13 +40,12 @@ pg_dump -U username dbname > backup.sql
 
 ### Step 2: Create New Tables
 
-Run the SQL migrations in this order:
+Run the SQL migrations in this order (PostgreSQL syntax):
 
 ```sql
 -- 1. Businesses (new)
 CREATE TABLE businesses (
     id VARCHAR(36) PRIMARY KEY,
-    business_id VARCHAR(20) UNIQUE NOT NULL,
     name VARCHAR(200) NOT NULL,
     type VARCHAR(20) NOT NULL,
     intents VARCHAR(100),
@@ -62,7 +63,6 @@ CREATE TABLE businesses (
 -- 2. Resources (new)
 CREATE TABLE resources (
     id VARCHAR(36) PRIMARY KEY,
-    resource_id VARCHAR(20) UNIQUE NOT NULL,
     business_id VARCHAR(36) REFERENCES businesses(id),
     type VARCHAR(20) NOT NULL,
     name VARCHAR(200) NOT NULL,
@@ -74,32 +74,54 @@ CREATE TABLE resources (
     updated_at TIMESTAMP
 );
 
--- 3. Menu (replace categories + menu_items)
-CREATE TABLE menu (
+-- 3. Categories (per-business)
+CREATE TABLE categories (
     id VARCHAR(36) PRIMARY KEY,
-    item_id VARCHAR(20) UNIQUE NOT NULL,
     business_id VARCHAR(36) REFERENCES businesses(id),
-    name VARCHAR(200) NOT NULL,
-    category VARCHAR(100),
-    price DECIMAL(10,2) NOT NULL,
-    available BOOLEAN DEFAULT TRUE,
-    quantity INTEGER DEFAULT 100,
+    name VARCHAR(100) NOT NULL,
     description TEXT,
+    image_url VARCHAR(500),
+    display_order INTEGER DEFAULT 0,
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
 
--- 4. Update Users table
-ALTER TABLE users ADD COLUMN user_id VARCHAR(20);
-ALTER TABLE users ADD COLUMN auth_provider VARCHAR(50);
-ALTER TABLE users ADD COLUMN auth_id VARCHAR(255);
--- Remove old columns if needed
+-- 4. Menu
+CREATE TABLE menu (
+    id VARCHAR(36) PRIMARY KEY,
+    business_id VARCHAR(36) REFERENCES businesses(id),
+    category_id VARCHAR(36) REFERENCES categories(id),
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
+    price DECIMAL(10,2) NOT NULL,
+    image_url VARCHAR(500),
+    available BOOLEAN DEFAULT TRUE,
+    quantity INTEGER DEFAULT 100,
+    preparation_time_mins INTEGER DEFAULT 10,
+    display_order INTEGER DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
 
--- 5. TeamMembers (new)
+-- 5. Users
+CREATE TABLE users (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    phone VARCHAR(20),
+    email VARCHAR(255),
+    hashed_password VARCHAR(255),
+    auth_provider VARCHAR(50),
+    auth_id VARCHAR(255),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- 6. TeamMembers (new)
 CREATE TABLE team_members (
     id VARCHAR(36) PRIMARY KEY,
-    member_id VARCHAR(20) UNIQUE NOT NULL,
     business_id VARCHAR(36) REFERENCES businesses(id),
     user_id VARCHAR(36) REFERENCES users(id),
     role VARCHAR(20) DEFAULT 'staff',
@@ -109,12 +131,41 @@ CREATE TABLE team_members (
     updated_at TIMESTAMP
 );
 
--- 6. Rename/Update Carts table
-ALTER TABLE carts RENAME TO carts_old;
+-- 7. Addresses (new)
+CREATE TABLE addresses (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36) REFERENCES users(id),
+    type VARCHAR(20),
+    address_line1 VARCHAR(500) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    pincode VARCHAR(20) NOT NULL,
+    lat_long VARCHAR(50),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
 
+-- 8. AssistantSessions (existing - keep)
+CREATE TABLE assistant_sessions (
+    id VARCHAR(36) PRIMARY KEY,
+    session_id VARCHAR(100) UNIQUE NOT NULL,
+    assistant_type VARCHAR(20) NOT NULL,
+    device_id VARCHAR(100),
+    phone_number VARCHAR(20),
+    status VARCHAR(20) DEFAULT 'active',
+    context JSON DEFAULT '{}',
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ended_at TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- 9. Carts
 CREATE TABLE carts (
     id VARCHAR(36) PRIMARY KEY,
-    cart_id VARCHAR(20) UNIQUE NOT NULL,
+    session_id VARCHAR(100),
+    device_id VARCHAR(100),
     user_id VARCHAR(36) REFERENCES users(id),
     business_id VARCHAR(36) REFERENCES businesses(id),
     intent VARCHAR(20) DEFAULT 'food_order',
@@ -123,23 +174,27 @@ CREATE TABLE carts (
     customer_phone VARCHAR(20),
     item_count INTEGER DEFAULT 0,
     subtotal DECIMAL(10,2) DEFAULT 0,
+    tax DECIMAL(10,2) DEFAULT 0,
+    total DECIMAL(10,2) DEFAULT 0,
     status VARCHAR(20) DEFAULT 'draft',
     source VARCHAR(20) DEFAULT 'app',
+    notes TEXT,
+    estimated_ready_time INTEGER,
+    assistant_session_id VARCHAR(36) REFERENCES assistant_sessions(id),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
 
--- 7. CartItems (new - replaces JSON items)
+-- 10. CartItems (new)
 CREATE TABLE cart_items (
     id VARCHAR(36) PRIMARY KEY,
-    cart_item_id VARCHAR(20) UNIQUE NOT NULL,
     cart_id VARCHAR(36) REFERENCES carts(id),
     item_id VARCHAR(36) REFERENCES menu(id),
-    item_name VARCHAR(200),
+    item_name VARCHAR(200) NOT NULL,
     quantity INTEGER DEFAULT 1,
-    unit_price DECIMAL(10,2),
-    total_price DECIMAL(10,2),
+    unit_price DECIMAL(10,2) NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
     notes TEXT,
     status VARCHAR(20) DEFAULT 'draft',
     prepared_by VARCHAR(36) REFERENCES team_members(id),
@@ -148,10 +203,9 @@ CREATE TABLE cart_items (
     updated_at TIMESTAMP
 );
 
--- 8. Bills (new)
+-- 11. Bills (new)
 CREATE TABLE bills (
     id VARCHAR(36) PRIMARY KEY,
-    bill_id VARCHAR(20) UNIQUE NOT NULL,
     cart_id VARCHAR(36) REFERENCES carts(id),
     business_id VARCHAR(36) REFERENCES businesses(id),
     subtotal DECIMAL(10,2) DEFAULT 0,
@@ -169,16 +223,15 @@ CREATE TABLE bills (
     updated_at TIMESTAMP
 );
 
--- 9. BillItems (new)
+-- 12. BillItems (new)
 CREATE TABLE bill_items (
     id VARCHAR(36) PRIMARY KEY,
-    bill_item_id VARCHAR(20) UNIQUE NOT NULL,
     bill_id VARCHAR(36) REFERENCES bills(id),
     cart_item_id VARCHAR(36) REFERENCES cart_items(id),
-    item_name VARCHAR(200),
+    item_name VARCHAR(200) NOT NULL,
     quantity INTEGER DEFAULT 1,
-    unit_price DECIMAL(10,2),
-    total_price DECIMAL(10,2),
+    unit_price DECIMAL(10,2) NOT NULL,
+    total_price DECIMAL(10,2) NOT NULL,
     paid_by_user_id VARCHAR(36) REFERENCES users(id),
     status VARCHAR(20) DEFAULT 'unpaid',
     is_active BOOLEAN DEFAULT TRUE,
@@ -186,21 +239,7 @@ CREATE TABLE bill_items (
     updated_at TIMESTAMP
 );
 
--- 10. Addresses (new)
-CREATE TABLE addresses (
-    id VARCHAR(36) PRIMARY KEY,
-    address_id VARCHAR(20) UNIQUE NOT NULL,
-    user_id VARCHAR(36) REFERENCES users(id),
-    type VARCHAR(20),
-    address_line1 VARCHAR(500),
-    city VARCHAR(100),
-    pincode VARCHAR(20),
-    lat_long VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP
-);
-
--- 11. FAQ (new)
+-- 13. FAQ (new)
 CREATE TABLE faqs (
     id VARCHAR(36) PRIMARY KEY,
     business_id VARCHAR(36) REFERENCES businesses(id),
@@ -210,49 +249,49 @@ CREATE TABLE faqs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP
 );
+
+-- 14. ConversationMessages (existing - keep)
+CREATE TABLE conversation_messages (
+    id VARCHAR(36) PRIMARY KEY,
+    session_id VARCHAR(36) REFERENCES assistant_sessions(id),
+    role VARCHAR(20) NOT NULL,
+    content TEXT NOT NULL,
+    audio_url VARCHAR(500),
+    intent VARCHAR(100),
+    entities JSON DEFAULT '{}',
+    confidence DECIMAL(5,4),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 15. Devices (existing - keep)
+CREATE TABLE devices (
+    id VARCHAR(36) PRIMARY KEY,
+    device_id VARCHAR(100) UNIQUE NOT NULL,
+    name VARCHAR(200),
+    device_type VARCHAR(20),
+    location VARCHAR(200),
+    is_active BOOLEAN DEFAULT TRUE,
+    last_seen TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP
+);
 ```
 
-### Step 3: Migrate Data
+### Step 3: Seed Initial Data
 
-```sql
--- Migrate menu items (merge category into menu)
-INSERT INTO menu (id, item_id, business_id, name, category, price, available, description)
-SELECT 
-    mi.id,
-    CONCAT('M', LPAD(ROW_NUMBER() OVER (), 3, '0')),
-    'your_business_id',
-    mi.name,
-    c.name,
-    mi.price,
-    mi.is_available,
-    mi.description
-FROM menu_items mi
-LEFT JOIN categories c ON mi.category_id = c.id;
+Use the seed script:
 
--- Migrate carts (extract items JSON to cart_items)
--- This requires application code - see Python script below
+```bash
+cd backend
+python -m scripts.seed_data
 ```
 
-### Step 4: Seed Initial Data
-
-Load data from CSV files in `/sheets` folder:
-
-```python
-import csv
-import asyncio
-from app.infrastructure.database.connection import get_session
-
-async def seed_from_csv():
-    async with get_session() as session:
-        # Load businesses
-        with open('sheets/1_Businesses.csv') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                # Insert into businesses table
-                pass
-        
-        # Repeat for other CSV files...
-```
+The seed script will:
+1. Drop all existing tables
+2. Create new tables based on SQLAlchemy models
+3. Load data from CSV files in `/db_samples_seed` folder
+4. Generate UUIDs for all records
+5. Map CSV reference IDs to UUIDs for foreign keys
 
 ---
 
@@ -266,6 +305,10 @@ See `07_PYTHON_ENUMS.py` in this folder.
 
 See `08_PYTHON_MODELS.py` in this folder.
 
+Key changes:
+- All `id` columns are `String(36)` with UUID default
+- All foreign keys are `String(36)`
+
 ### 3. Update Services
 
 Key changes needed:
@@ -274,6 +317,7 @@ Key changes needed:
 - Remove JSON item handling
 - Use CartItems table instead
 - Add business_id context
+- All IDs are strings (UUID)
 
 #### OrderService  
 - Rename to CartService (or keep as alias)
@@ -292,6 +336,10 @@ Key changes needed:
 ### Update TypeScript Types (`frontend/src/lib/types.ts`)
 
 See `09_TYPESCRIPT_TYPES.ts` in this folder.
+
+Key changes:
+- All `id` fields are `string` (not `number`)
+- All foreign key fields are `string`
 
 ---
 

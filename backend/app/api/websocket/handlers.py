@@ -1,8 +1,5 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.infrastructure.database.connection import get_db_session
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from app.infrastructure.messaging.websocket_manager import connection_manager
-from app.services.order_service import OrderService
 from app.utils.null_check import Util
 import json
 

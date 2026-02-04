@@ -1,5 +1,7 @@
 # Database Schema Overview
 
+> **Note:** All tables use UUID (String 36 chars) as primary keys for better multi-tenancy and security.
+
 ## Tables Summary
 
 | # | File | Table Name | Records | Purpose |
@@ -18,18 +20,38 @@
 
 ---
 
+## Primary Key Strategy
+
+All tables use **UUID** (36-character string) as primary keys:
+
+```python
+import uuid
+def generate_uuid():
+    return str(uuid.uuid4())
+```
+
+**Benefits:**
+- ✅ Multi-tenant safe - no ID conflicts across businesses
+- ✅ Security - IDs are not guessable
+- ✅ Scalability - works in distributed systems
+- ✅ No sequential pattern exposure
+
+---
+
 ## Business Types Supported
 
 | Business | Type | Intent | Resource | Payment Flow |
 |----------|------|--------|----------|--------------|
-| BIZ001 - Spiceclub Restaurant | RESTAURANT | FOOD_ORDER | TABLE | POST_SERVICE |
-| BIZ002 - Grand Palace Hotel | HOTEL | BOOKING | ROOM | PRE_SERVICE |
-| BIZ003 - Dr. Sharma Clinic | CLINIC | APPOINTMENT | SLOT | PRE_SERVICE |
-| BIZ004 - PacDonalds | RESTAURANT | FOOD_ORDER | TABLE | POST_SERVICE |
+| Spiceclub Restaurant | RESTAURANT | FOOD_ORDER | TABLE | POST_SERVICE |
+| Grand Palace Hotel | HOTEL | BOOKING | ROOM | PRE_SERVICE |
+| Dr. Sharma Clinic | CLINIC | APPOINTMENT | SLOT | PRE_SERVICE |
+| PacDonalds | RESTAURANT | FOOD_ORDER | TABLE | POST_SERVICE |
 
 ---
 
-## ID Prefixes Convention
+## CSV ID Prefixes (Reference Only)
+
+> **Note:** These prefixes are only in CSV files for readability. The actual database uses UUIDs.
 
 | Table | Prefix | Example |
 |-------|--------|---------|

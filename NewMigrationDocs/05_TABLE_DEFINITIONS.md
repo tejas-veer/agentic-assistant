@@ -1,6 +1,6 @@
 # Table Definitions (Merged Schema)
 
-> **Updated:** Standard integer PKs and FKs. Removed string-based readable IDs.
+> **Updated:** UUID primary keys (String 36 chars) for all tables.
 
 ---
 
@@ -8,7 +8,7 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
 | name | string(200) | NO | - | Business name |
 | type | enum | NO | - | RESTAURANT, HOTEL, CLINIC |
 | intents | string(100) | YES | - | FOOD_ORDER, BOOKING, APPOINTMENT |
@@ -28,8 +28,8 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
-| business_id | int | NO | - | FK → Businesses.id |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
+| business_id | string(36) | NO | - | FK → Businesses.id |
 | type | enum | NO | - | TABLE, ROOM, SLOT |
 | name | string(200) | NO | - | Display name |
 | capacity | int | NO | 1 | Max guests |
@@ -45,8 +45,8 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
-| business_id | int | NO | - | FK → Businesses.id (NEW) |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
+| business_id | string(36) | NO | - | FK → Businesses.id (NEW) |
 | name | string(100) | NO | - | Category name |
 | description | text | YES | - | Category description |
 | image_url | string(500) | YES | - | Category image |
@@ -61,9 +61,9 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
-| business_id | int | NO | - | FK → Businesses.id |
-| category_id | int | NO | - | FK → Categories.id |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
+| business_id | string(36) | NO | - | FK → Businesses.id |
+| category_id | string(36) | NO | - | FK → Categories.id |
 | name | string(200) | NO | - | Item name |
 | description | text | YES | - | Item description |
 | price | decimal(10,2) | NO | - | Item price |
@@ -82,7 +82,7 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
 | name | string(200) | NO | - | Full name |
 | phone | string(20) | YES | - | Phone number |
 | email | string(255) | YES | - | Email address |
@@ -99,9 +99,9 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
-| business_id | int | NO | - | FK → Businesses.id |
-| user_id | int | NO | - | FK → Users.id |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
+| business_id | string(36) | NO | - | FK → Businesses.id |
+| user_id | string(36) | NO | - | FK → Users.id |
 | role | enum | NO | staff | ADMIN, STAFF |
 | status | string(20) | NO | active | ACTIVE, INACTIVE |
 | is_active | boolean | NO | true | Soft delete flag |
@@ -114,8 +114,8 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
-| user_id | int | NO | - | FK → Users.id |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
+| user_id | string(36) | NO | - | FK → Users.id |
 | type | string(20) | NO | - | HOME, WORK, OTHER |
 | address_line1 | string(500) | NO | - | Street address |
 | city | string(100) | NO | - | City name |
@@ -131,13 +131,13 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
 | session_id | string(100) | YES | - | Browser session |
 | device_id | string(100) | YES | - | Kiosk device ID |
-| user_id | int | YES | - | FK → Users.id (nullable for guests) |
-| business_id | int | NO | - | FK → Businesses.id |
+| user_id | string(36) | YES | - | FK → Users.id (nullable for guests) |
+| business_id | string(36) | NO | - | FK → Businesses.id |
 | intent | enum | NO | food_order | FOOD_ORDER, BOOKING, APPOINTMENT |
-| resource_id | int | YES | - | FK → Resources.id |
+| resource_id | string(36) | YES | - | FK → Resources.id |
 | customer_name | string(200) | YES | - | Customer name |
 | customer_phone | string(20) | YES | - | Customer phone |
 | item_count | int | NO | 0 | Total items count |
@@ -148,7 +148,7 @@
 | source | enum | NO | app | APP, VOICE, CHAT |
 | notes | text | YES | - | Order notes |
 | estimated_ready_time | int | YES | - | ETA in minutes |
-| assistant_session_id | int | YES | - | FK → AssistantSessions.id |
+| assistant_session_id | string(36) | YES | - | FK → AssistantSessions.id |
 | is_active | boolean | NO | true | Soft delete flag |
 | created_at | datetime | NO | now | Record created |
 | updated_at | datetime | YES | - | Record updated |
@@ -159,16 +159,16 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
-| cart_id | int | NO | - | FK → Cart.id |
-| item_id | int | NO | - | FK → Menu.id |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
+| cart_id | string(36) | NO | - | FK → Cart.id |
+| item_id | string(36) | NO | - | FK → Menu.id |
 | item_name | string(200) | NO | - | Denormalized item name |
 | quantity | int | NO | 1 | Quantity ordered |
 | unit_price | decimal(10,2) | NO | - | Price per unit |
 | total_price | decimal(10,2) | NO | - | quantity × unit_price |
 | notes | text | YES | - | Special instructions |
 | status | enum | NO | draft | DRAFT, PENDING, PREPARING, READY, SERVED, ABANDONED, CANCELLED |
-| prepared_by | int | YES | - | FK → TeamMembers.id |
+| prepared_by | string(36) | YES | - | FK → TeamMembers.id |
 | is_active | boolean | NO | true | Soft delete flag |
 | created_at | datetime | NO | now | Record created |
 | updated_at | datetime | YES | - | Record updated |
@@ -179,9 +179,9 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
-| cart_id | int | NO | - | FK → Cart.id |
-| business_id | int | NO | - | FK → Businesses.id |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
+| cart_id | string(36) | NO | - | FK → Cart.id |
+| business_id | string(36) | NO | - | FK → Businesses.id |
 | subtotal | decimal(10,2) | NO | 0 | Sum before tax |
 | tax_percent | decimal(5,2) | NO | 0 | Tax percentage |
 | tax_amount | decimal(10,2) | NO | 0 | Calculated tax |
@@ -202,14 +202,14 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
-| bill_id | int | NO | - | FK → Bills.id |
-| cart_item_id | int | NO | - | FK → CartItems.id |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
+| bill_id | string(36) | NO | - | FK → Bills.id |
+| cart_item_id | string(36) | NO | - | FK → CartItems.id |
 | item_name | string(200) | NO | - | Denormalized item name |
 | quantity | int | NO | 1 | Quantity |
 | unit_price | decimal(10,2) | NO | - | Price per unit |
 | total_price | decimal(10,2) | NO | - | quantity × unit_price |
-| paid_by_user_id | int | YES | - | FK → Users.id (for split billing) |
+| paid_by_user_id | string(36) | YES | - | FK → Users.id (for split billing) |
 | status | enum | NO | unpaid | UNPAID, PAID, REFUNDED |
 | is_active | boolean | NO | true | Soft delete flag |
 | created_at | datetime | NO | now | Record created |
@@ -221,8 +221,8 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
-| business_id | int | NO | - | FK → Businesses.id |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
+| business_id | string(36) | NO | - | FK → Businesses.id |
 | question | text | NO | - | FAQ question |
 | answer | text | NO | - | FAQ answer |
 | is_active | boolean | NO | true | Soft delete flag |
@@ -235,7 +235,7 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
 | session_id | string(100) | NO | - | Unique session identifier |
 | assistant_type | enum | NO | - | VOICE, CALL, CHAT |
 | device_id | string(100) | YES | - | Associated device |
@@ -254,8 +254,8 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
-| session_id | int | NO | - | FK → AssistantSessions.id |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
+| session_id | string(36) | NO | - | FK → AssistantSessions.id |
 | role | string(20) | NO | - | user, assistant |
 | content | text | NO | - | Message content |
 | audio_url | string(500) | YES | - | Audio file URL |
@@ -270,7 +270,7 @@
 
 | Column | Type | Nullable | Default | Description |
 |--------|------|----------|---------|-------------|
-| id | int | NO | auto | Primary Key |
+| id | string(36) | NO | uuid | Primary Key (UUID) |
 | device_id | string(100) | NO | - | Unique device identifier |
 | name | string(200) | YES | - | Device name |
 | device_type | string(20) | YES | - | KIOSK, TABLET, WEB, PHONE |
@@ -284,20 +284,20 @@
 
 ## Table Summary
 
-| # | Table | Type | FK References |
-|---|-------|------|---------------|
-| 1 | Businesses | NEW | - |
-| 2 | Resources | NEW | business_id |
-| 3 | Categories | EXISTING+ENHANCED | business_id |
-| 4 | Menu | MERGED | business_id, category_id |
-| 5 | Users | MERGED | - |
-| 6 | TeamMembers | NEW | business_id, user_id |
-| 7 | Addresses | NEW+ENHANCED | user_id |
-| 8 | Cart | MERGED | user_id, business_id, resource_id, assistant_session_id |
-| 9 | CartItems | NEW | cart_id, item_id, prepared_by |
-| 10 | Bills | NEW | cart_id, business_id |
-| 11 | BillItems | NEW | bill_id, cart_item_id, paid_by_user_id |
-| 12 | FAQ | NEW | business_id |
-| 13 | AssistantSessions | EXISTING | - |
-| 14 | ConversationMessages | EXISTING | session_id |
-| 15 | Devices | EXISTING | - |
+| # | Table | Type | PK Type | FK References |
+|---|-------|------|---------|---------------|
+| 1 | Businesses | NEW | UUID | - |
+| 2 | Resources | NEW | UUID | business_id |
+| 3 | Categories | EXISTING+ENHANCED | UUID | business_id |
+| 4 | Menu | MERGED | UUID | business_id, category_id |
+| 5 | Users | MERGED | UUID | - |
+| 6 | TeamMembers | NEW | UUID | business_id, user_id |
+| 7 | Addresses | NEW+ENHANCED | UUID | user_id |
+| 8 | Cart | MERGED | UUID | user_id, business_id, resource_id, assistant_session_id |
+| 9 | CartItems | NEW | UUID | cart_id, item_id, prepared_by |
+| 10 | Bills | NEW | UUID | cart_id, business_id |
+| 11 | BillItems | NEW | UUID | bill_id, cart_item_id, paid_by_user_id |
+| 12 | FAQ | NEW | UUID | business_id |
+| 13 | AssistantSessions | EXISTING | UUID | - |
+| 14 | ConversationMessages | EXISTING | UUID | session_id |
+| 15 | Devices | EXISTING | UUID | - |

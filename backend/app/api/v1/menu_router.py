@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.infrastructure.database.connection import get_db_session
 from app.services.menu_service import MenuService
@@ -9,9 +9,12 @@ router = APIRouter(prefix="/menu", tags=["Menu"])
 
 
 @router.get("")
-async def get_menu(session: AsyncSession = Depends(get_db_session)):
+async def get_menu(
+    business_id: str = Query("1", description="Business ID"),
+    session: AsyncSession = Depends(get_db_session)
+):
     service = MenuService(session)
-    menu = await service.get_full_menu()
+    menu = await service.get_full_menu(business_id)
     return ApiResponse(success=True, data=menu)
 
 
@@ -30,10 +33,11 @@ async def get_menu_item(
 @router.get("/search")
 async def search_menu(
     q: str,
+    business_id: str = Query("1", description="Business ID"),
     session: AsyncSession = Depends(get_db_session)
 ):
     service = MenuService(session)
-    items = await service.search_menu_items(q)
+    items = await service.search_menu_items(business_id, q)
     return ApiResponse(success=True, data=items)
 
 
@@ -44,6 +48,7 @@ async def create_category(
 ):
     service = MenuService(session)
     category = await service.create_category(
+        business_id=data.business_id,
         name=data.name,
         description=data.description,
         image_url=data.image_url
@@ -58,14 +63,14 @@ async def create_menu_item(
 ):
     service = MenuService(session)
     item = await service.create_menu_item(
+        business_id=data.business_id,
+        category_id=data.category_id,
         name=data.name,
         price=data.price,
-        category_id=data.category_id,
         description=data.description,
         image_url=data.image_url,
         preparation_time_mins=data.preparation_time_mins,
-        tags=data.tags,
-        customizations=data.customizations
+        quantity=data.quantity
     )
     return ApiResponse(success=True, data={"id": item.id, "name": item.name})
 
@@ -73,12 +78,11 @@ async def create_menu_item(
 @router.patch("/items/{item_id}/availability")
 async def update_item_availability(
     item_id: str,
-    is_available: bool,
+    available: bool,
     session: AsyncSession = Depends(get_db_session)
 ):
     service = MenuService(session)
-    item = await service.update_item_availability(item_id, is_available)
+    item = await service.update_item_availability(item_id, available)
     if Util.is_null(item):
         raise HTTPException(status_code=404, detail="Menu item not found")
     return ApiResponse(success=True, message="Availability updated")
-

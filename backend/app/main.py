@@ -18,7 +18,7 @@ from app.infrastructure.database.connection import init_db
 from app.infrastructure.llm import LLMFactory
 from app.api.v1.menu_router import router as menu_router
 from app.api.v1.cart_router import router as cart_router
-from app.api.v1.order_router import router as order_router
+from app.api.v1.bill_router import router as bill_router
 from app.api.v1.assistant_router import router as assistant_router
 from app.api.websocket.handlers import router as websocket_router
 
@@ -119,7 +119,7 @@ app.add_middleware(
 # Include routers
 app.include_router(menu_router, prefix="/api/v1", tags=["Menu"])
 app.include_router(cart_router, prefix="/api/v1", tags=["Cart"])
-app.include_router(order_router, prefix="/api/v1", tags=["Orders"])
+app.include_router(bill_router, prefix="/api/v1", tags=["Bills"])
 app.include_router(assistant_router, prefix="/api/v1", tags=["Assistant"])
 app.include_router(websocket_router, tags=["WebSocket"])
 

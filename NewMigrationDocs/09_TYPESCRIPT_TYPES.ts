@@ -1,11 +1,7 @@
 /**
- * TypeScript Types for the merged schema
- * Copy this to: frontend/src/lib/types.ts
- *
- * Standard integer PKs and FKs (no string-based readable IDs)
+ * TypeScript Types for Multi-Tenant Schema
+ * All IDs are string (UUID)
  */
-
-// ==================== ENUMS ====================
 
 export type BusinessType = 'restaurant' | 'hotel' | 'clinic'
 
@@ -62,10 +58,8 @@ export type AddressType = 'home' | 'work' | 'other'
 
 export type TeamMemberStatus = 'active' | 'inactive'
 
-// ==================== INTERFACES ====================
-
 export interface Business {
-  id: number
+  id: string
   name: string
   type: BusinessType
   intents: string | null
@@ -81,8 +75,8 @@ export interface Business {
 }
 
 export interface Resource {
-  id: number
-  businessId: number
+  id: string
+  businessId: string
   type: ResourceType
   name: string
   capacity: number
@@ -94,8 +88,8 @@ export interface Resource {
 }
 
 export interface Category {
-  id: number
-  businessId: number
+  id: string
+  businessId: string
   name: string
   description: string | null
   imageUrl: string | null
@@ -107,9 +101,9 @@ export interface Category {
 }
 
 export interface MenuItem {
-  id: number
-  businessId: number
-  categoryId: number
+  id: string
+  businessId: string
+  categoryId: string
   name: string
   description: string | null
   price: number
@@ -125,7 +119,7 @@ export interface MenuItem {
 }
 
 export interface User {
-  id: number
+  id: string
   name: string
   phone: string | null
   email: string | null
@@ -137,9 +131,9 @@ export interface User {
 }
 
 export interface TeamMember {
-  id: number
-  businessId: number
-  userId: number
+  id: string
+  businessId: string
+  userId: string
   role: UserRole
   status: TeamMemberStatus
   isActive: boolean
@@ -150,8 +144,8 @@ export interface TeamMember {
 }
 
 export interface Address {
-  id: number
-  userId: number
+  id: string
+  userId: string
   type: AddressType
   addressLine1: string
   city: string
@@ -163,13 +157,13 @@ export interface Address {
 }
 
 export interface Cart {
-  id: number
+  id: string
   sessionId: string | null
   deviceId: string | null
-  userId: number | null
-  businessId: number
+  userId: string | null
+  businessId: string
   intent: IntentType
-  resourceId: number | null
+  resourceId: string | null
   customerName: string | null
   customerPhone: string | null
   itemCount: number
@@ -180,7 +174,7 @@ export interface Cart {
   source: OrderSource
   notes: string | null
   estimatedReadyTime: number | null
-  assistantSessionId: number | null
+  assistantSessionId: string | null
   isActive: boolean
   createdAt: Date
   updatedAt: Date | null
@@ -192,16 +186,16 @@ export interface Cart {
 }
 
 export interface CartItem {
-  id: number
-  cartId: number
-  itemId: number
+  id: string
+  cartId: string
+  itemId: string
   itemName: string
   quantity: number
   unitPrice: number
   totalPrice: number
   notes: string | null
   status: CartItemStatus
-  preparedBy: number | null
+  preparedBy: string | null
   isActive: boolean
   createdAt: Date
   updatedAt: Date | null
@@ -210,9 +204,9 @@ export interface CartItem {
 }
 
 export interface Bill {
-  id: number
-  cartId: number
-  businessId: number
+  id: string
+  cartId: string
+  businessId: string
   subtotal: number
   taxPercent: number
   taxAmount: number
@@ -220,6 +214,7 @@ export interface Bill {
   serviceCharge: number
   totalAmount: number
   paidAmount: number
+  balanceDue: number
   paymentMode: PaymentMethod | null
   status: BillStatus
   paymentRef: string | null
@@ -231,14 +226,14 @@ export interface Bill {
 }
 
 export interface BillItem {
-  id: number
-  billId: number
-  cartItemId: number
+  id: string
+  billId: string
+  cartItemId: string
   itemName: string
   quantity: number
   unitPrice: number
   totalPrice: number
-  paidByUserId: number | null
+  paidByUserId: string | null
   status: BillItemStatus
   isActive: boolean
   createdAt: Date
@@ -248,8 +243,8 @@ export interface BillItem {
 }
 
 export interface FAQ {
-  id: number
-  businessId: number
+  id: string
+  businessId: string
   question: string
   answer: string
   isActive: boolean
@@ -258,7 +253,7 @@ export interface FAQ {
 }
 
 export interface AssistantSession {
-  id: number
+  id: string
   sessionId: string
   assistantType: AssistantType
   deviceId: string | null
@@ -274,8 +269,8 @@ export interface AssistantSession {
 }
 
 export interface ConversationMessage {
-  id: number
-  sessionId: number
+  id: string
+  sessionId: string
   role: 'user' | 'assistant'
   content: string
   audioUrl: string | null
@@ -286,7 +281,7 @@ export interface ConversationMessage {
 }
 
 export interface Device {
-  id: number
+  id: string
   deviceId: string
   name: string | null
   deviceType: DeviceType | null
@@ -295,104 +290,4 @@ export interface Device {
   lastSeen: Date | null
   createdAt: Date
   updatedAt: Date | null
-}
-
-// ==================== API TYPES ====================
-
-export interface ApiResponse<T> {
-  success: boolean
-  data: T
-  message?: string
-  error?: {
-    code: string
-    message: string
-    details?: Record<string, unknown>
-  }
-}
-
-export interface PaginatedResponse<T> {
-  items: T[]
-  total: number
-  page: number
-  pageSize: number
-  hasMore: boolean
-}
-
-// ==================== REQUEST TYPES ====================
-
-export interface CreateCartRequest {
-  businessId: number
-  sessionId?: string
-  deviceId?: string
-  userId?: number
-  resourceId?: number
-  customerName?: string
-  customerPhone?: string
-  source?: OrderSource
-}
-
-export interface AddToCartRequest {
-  cartId: number
-  itemId: number
-  quantity: number
-  notes?: string
-}
-
-export interface UpdateCartItemRequest {
-  cartItemId: number
-  quantity?: number
-  notes?: string
-}
-
-export interface ConfirmOrderRequest {
-  cartId: number
-  customerName?: string
-  customerPhone?: string
-  resourceId?: number
-}
-
-export interface UpdateCartItemStatusRequest {
-  cartItemId: number
-  status: CartItemStatus
-  preparedBy?: number
-}
-
-export interface CreateBillRequest {
-  cartId: number
-  taxPercent?: number
-  discountAmount?: number
-  serviceCharge?: number
-}
-
-export interface ProcessPaymentRequest {
-  billId: number
-  amount: number
-  paymentMode: PaymentMethod
-  paymentRef?: string
-}
-
-export interface SplitPaymentRequest {
-  billId: number
-  billItemIds: number[]
-  paidByUserId: number
-  amount: number
-  paymentMode: PaymentMethod
-}
-
-// ==================== MESSAGE CONTENT TYPES (FOR ASSISTANT) ====================
-
-export interface MessageContent {
-  type: 'text' | 'menu-items' | 'cart-summary' | 'order-confirmed' | 'suggestions'
-  text?: string
-  items?: MenuItem[]
-  cartItems?: { name: string; quantity: number; price: number }[]
-  cartTotal?: number
-  orderNumber?: string
-  suggestions?: string[]
-}
-
-export interface ChatMessage {
-  role: 'user' | 'assistant'
-  content: MessageContent[]
-  timestamp?: Date
 }

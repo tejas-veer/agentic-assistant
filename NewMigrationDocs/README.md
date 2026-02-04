@@ -1,6 +1,6 @@
 # Schema Documentation (Merged Schema)
 
-> **Updated:** Standard integer PKs and FKs (no string-based readable IDs)
+> **Updated:** UUID (String 36) primary keys for all tables
 
 ## 📁 Files Overview
 
@@ -75,19 +75,32 @@ python 10_SEED_DATA_SCRIPT.py
 
 ## 🔑 Primary Key Strategy
 
-All tables use **integer auto-increment** primary keys:
+All tables use **UUID (36-character string)** primary keys:
 
-```sql
-id INT PRIMARY KEY AUTO_INCREMENT
+```python
+import uuid
+def generate_uuid():
+    return str(uuid.uuid4())
 ```
 
-Foreign keys reference the `id` column of related tables:
-
-```sql
-business_id INT REFERENCES businesses(id)
-user_id INT REFERENCES users(id)
-cart_id INT REFERENCES carts(id)
+**SQLAlchemy Example:**
+```python
+id = Column(String(36), primary_key=True, default=generate_uuid)
 ```
+
+**TypeScript:**
+```typescript
+interface User {
+  id: string  // UUID
+  // ...
+}
+```
+
+**Benefits of UUID:**
+- ✅ Multi-tenant safe - no ID conflicts across businesses
+- ✅ Security - IDs are not guessable/enumerable
+- ✅ Scalability - works in distributed systems
+- ✅ No sequential pattern exposure
 
 ---
 
@@ -133,7 +146,7 @@ User → Cart (DRAFT) → CartItems (DRAFT)
 | `db_samples_seed/12_CartItems.csv` | CartItems | 16 |
 | `db_samples_seed/13_BillItems.csv` | BillItems | 5 |
 
-> Note: CSV IDs (like BIZ001, U001) are for reference only. Actual database uses auto-increment integers.
+> Note: CSV IDs (like BIZ001, U001) are for reference only. Actual database uses generated UUIDs with mapping.
 
 ---
 
@@ -141,7 +154,7 @@ User → Cart (DRAFT) → CartItems (DRAFT)
 
 | Feature | Old Prototype | New Schema |
 |---------|--------------|------------|
-| Primary Keys | UUID strings | Integer auto-increment |
+| Primary Keys | UUID strings | UUID strings (String 36) |
 | Multi-tenant | ❌ Single business | ✅ Businesses table |
 | Categories | Global | Per-business (business_id FK) |
 | Menu | Basic | + image_url, prep_time, display_order |

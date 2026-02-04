@@ -1,19 +1,25 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Cart, Order } from './api'
+import type { Cart, Bill, Category } from './types'
 
 interface KioskState {
   sessionId: string
   deviceId: string
+  businessId: string
+  cartId: string | null
   cart: Cart | null
-  currentOrder: Order | null
+  currentBill: Bill | null
   assistantSessionId: string | null
   isVoiceActive: boolean
+  categories: Category[]
   setSessionId: (id: string) => void
+  setBusinessId: (id: string) => void
+  setCartId: (id: string | null) => void
   setCart: (cart: Cart | null) => void
-  setCurrentOrder: (order: Order | null) => void
+  setCurrentBill: (bill: Bill | null) => void
   setAssistantSession: (id: string | null) => void
   setVoiceActive: (active: boolean) => void
+  setCategories: (categories: Category[]) => void
   reset: () => void
 }
 
@@ -22,19 +28,26 @@ export const useKioskStore = create<KioskState>()(
     (set) => ({
       sessionId: `session_${Date.now()}_${Math.random().toString(36).slice(2)}`,
       deviceId: `kiosk_${Date.now()}`,
+      businessId: '1',
+      cartId: null,
       cart: null,
-      currentOrder: null,
+      currentBill: null,
       assistantSessionId: null,
       isVoiceActive: false,
+      categories: [],
       setSessionId: (id) => set({ sessionId: id }),
+      setBusinessId: (id) => set({ businessId: id }),
+      setCartId: (id) => set({ cartId: id }),
       setCart: (cart) => set({ cart }),
-      setCurrentOrder: (order) => set({ currentOrder: order }),
+      setCurrentBill: (bill) => set({ currentBill: bill }),
       setAssistantSession: (id) => set({ assistantSessionId: id }),
       setVoiceActive: (active) => set({ isVoiceActive: active }),
+      setCategories: (categories) => set({ categories }),
       reset: () => set({
         sessionId: `session_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+        cartId: null,
         cart: null,
-        currentOrder: null,
+        currentBill: null,
         assistantSessionId: null,
         isVoiceActive: false,
       }),
@@ -46,16 +59,20 @@ export const useKioskStore = create<KioskState>()(
 )
 
 interface AdminState {
-  pendingOrders: Order[]
-  selectedOrder: Order | null
-  setPendingOrders: (orders: Order[]) => void
-  setSelectedOrder: (order: Order | null) => void
-  updateOrder: (order: Order) => void
+  businessId: string
+  pendingOrders: Cart[]
+  selectedOrder: Cart | null
+  setBusinessId: (id: string) => void
+  setPendingOrders: (orders: Cart[]) => void
+  setSelectedOrder: (order: Cart | null) => void
+  updateOrder: (order: Cart) => void
 }
 
 export const useAdminStore = create<AdminState>((set) => ({
+  businessId: '1',
   pendingOrders: [],
   selectedOrder: null,
+  setBusinessId: (id) => set({ businessId: id }),
   setPendingOrders: (orders) => set({ pendingOrders: orders }),
   setSelectedOrder: (order) => set({ selectedOrder: order }),
   updateOrder: (order) => set((state) => ({
@@ -65,4 +82,3 @@ export const useAdminStore = create<AdminState>((set) => ({
     selectedOrder: state.selectedOrder?.id === order.id ? order : state.selectedOrder,
   })),
 }))
-
