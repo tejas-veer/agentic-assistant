@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     # LLM - Gemini (Primary)
     GEMINI_API_KEY: Optional[str] = None
     
+    # Auth
+    SECRET_KEY: str = "your-super-secret-key-change-in-production-123456789"
+    
     # CORS
     CORS_ORIGINS: list[str] = ["*"]
     

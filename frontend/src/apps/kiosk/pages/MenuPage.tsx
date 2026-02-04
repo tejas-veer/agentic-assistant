@@ -7,32 +7,57 @@ import { useKioskStore } from '@/lib/store'
 import MenuItemCard from '../components/MenuItemCard'
 
 export default function MenuPage() {
-  const { sessionId, setCart } = useKioskStore()
+  const { businessId, sessionId, cartId, setCartId, setCart, setCategories } = useKioskStore()
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
   const { data: menu, isLoading } = useQuery({
-    queryKey: ['menu'],
-    queryFn: menuApi.getMenu,
+    queryKey: ['menu', businessId],
+    queryFn: () => menuApi.getMenu(businessId),
   })
 
   useEffect(() => {
-    if (menu && menu.length > 0 && !activeCategory) {
-      setActiveCategory(menu[0].id)
+    if (menu && menu.length > 0) {
+      setCategories(menu)
+      if (!activeCategory) {
+        setActiveCategory(menu[0].id)
+      }
     }
-  }, [menu, activeCategory])
+  }, [menu, activeCategory, setCategories])
 
   useEffect(() => {
-    const loadCart = async () => {
-      const cart = await cartApi.getCart(sessionId)
-      setCart(cart)
+    const loadOrCreateCart = async () => {
+      try {
+        if (cartId) {
+          const cart = await cartApi.getCart(cartId)
+          if (cart) {
+            setCart(cart)
+            return
+          } else {
+            // Cart no longer exists (e.g., DB was re-seeded), clear it
+            setCartId(null)
+            setCart(null)
+          }
+        }
+        
+        const cartBySession = await cartApi.getCartBySession(sessionId)
+        if (cartBySession) {
+          setCartId(cartBySession.id)
+          setCart(cartBySession)
+        }
+      } catch (error) {
+        console.error('Failed to load cart:', error)
+        // Clear invalid cart ID on error
+        setCartId(null)
+        setCart(null)
+      }
     }
-    loadCart()
-  }, [sessionId, setCart])
+    loadOrCreateCart()
+  }, [sessionId, cartId, setCart, setCartId])
 
   const filteredMenu = menu?.map(category => ({
     ...category,
-    items: category.items.filter(item =>
+    items: (category.items || []).filter(item =>
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       item.description?.toLowerCase().includes(searchQuery.toLowerCase())
     )
@@ -133,4 +158,3 @@ export default function MenuPage() {
     </div>
   )
 }
-

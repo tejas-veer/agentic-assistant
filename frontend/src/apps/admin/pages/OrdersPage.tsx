@@ -2,46 +2,35 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Check, X, Clock, ChefHat, Package } from 'lucide-react'
-import { orderApi, type Order } from '@/lib/api'
+import { cartApi } from '@/lib/api'
+import type { Cart, CartStatus } from '@/lib/types'
+import { useAdminStore } from '@/lib/store'
 import { formatPrice, formatTime, getStatusColor } from '@/lib/utils'
 
 export default function OrdersPage() {
   const queryClient = useQueryClient()
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const { businessId } = useAdminStore()
+  const [selectedOrder, setSelectedOrder] = useState<Cart | null>(null)
 
   const { data: orders } = useQuery({
-    queryKey: ['pending-orders'],
-    queryFn: orderApi.getPendingOrders,
+    queryKey: ['pending-orders', businessId],
+    queryFn: () => cartApi.getPendingOrders(businessId),
     refetchInterval: 3000,
   })
 
   const updateStatusMutation = useMutation({
-    mutationFn: ({ orderId, status }: { orderId: string; status: string }) =>
-      orderApi.updateStatus(orderId, status),
+    mutationFn: ({ cartId, status }: { cartId: string; status: CartStatus }) =>
+      cartApi.updateStatus(cartId, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-orders'] })
     },
   })
 
-  const confirmMutation = useMutation({
-    mutationFn: ({ orderId, time }: { orderId: string; time?: number }) =>
-      orderApi.confirmOrder(orderId, time),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-orders'] })
-      setSelectedOrder(null)
-    },
-  })
-
-  const cancelMutation = useMutation({
-    mutationFn: (orderId: string) => orderApi.cancelOrder(orderId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pending-orders'] })
-      setSelectedOrder(null)
-    },
-  })
-
-  const handleStatusChange = (orderId: string, newStatus: string) => {
-    updateStatusMutation.mutate({ orderId, status: newStatus })
+  const handleStatusChange = (cartId: string, newStatus: CartStatus) => {
+    updateStatusMutation.mutate({ cartId, status: newStatus })
+    if (selectedOrder?.id === cartId) {
+      setSelectedOrder({ ...selectedOrder, status: newStatus })
+    }
   }
 
   return (
@@ -79,25 +68,25 @@ export default function OrdersPage() {
                   >
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-3">
-                        <span className="font-display font-bold text-lg">{order.order_number}</span>
-                        {order.table_number && (
+                        <span className="font-display font-bold text-lg">{order.id.slice(0, 8).toUpperCase()}</span>
+                        {order.resourceId && (
                           <span className="px-2 py-0.5 bg-white/10 rounded text-sm">
-                            Table {order.table_number}
+                            Resource
                           </span>
                         )}
                       </div>
                       <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}>
-                        {order.status}
+                        {order.status.replace('_', ' ')}
                       </span>
                     </div>
 
                     <div className="flex items-center justify-between text-sm">
                       <div className="text-white/60">
-                        {order.items.map(i => `${i.quantity}x ${i.menu_item_name}`).join(', ')}
+                        {order.items?.map(i => `${i.quantity}x ${i.itemName}`).join(', ') || 'No items'}
                       </div>
                       <div className="flex items-center gap-4">
                         <span className="font-semibold">{formatPrice(order.total)}</span>
-                        <span className="text-white/40">{formatTime(order.created_at)}</span>
+                        <span className="text-white/40">{formatTime(order.createdAt)}</span>
                       </div>
                     </div>
                   </motion.div>
@@ -125,32 +114,32 @@ export default function OrdersPage() {
                 className="glass-card sticky top-8"
               >
                 <div className="p-4 border-b border-white/10">
-                  <h3 className="font-display text-xl font-bold">{selectedOrder.order_number}</h3>
-                  <p className="text-white/60 text-sm">{formatTime(selectedOrder.created_at)}</p>
+                  <h3 className="font-display text-xl font-bold">{selectedOrder.id.slice(0, 8).toUpperCase()}</h3>
+                  <p className="text-white/60 text-sm">{formatTime(selectedOrder.createdAt)}</p>
                 </div>
 
                 <div className="p-4 space-y-4">
-                  {selectedOrder.customer_name && (
+                  {selectedOrder.customerName && (
                     <div>
                       <span className="text-white/40 text-sm">Customer</span>
-                      <p className="font-medium">{selectedOrder.customer_name}</p>
+                      <p className="font-medium">{selectedOrder.customerName}</p>
                     </div>
                   )}
 
-                  {selectedOrder.table_number && (
+                  {selectedOrder.customerPhone && (
                     <div>
-                      <span className="text-white/40 text-sm">Table</span>
-                      <p className="font-medium">{selectedOrder.table_number}</p>
+                      <span className="text-white/40 text-sm">Phone</span>
+                      <p className="font-medium">{selectedOrder.customerPhone}</p>
                     </div>
                   )}
 
                   <div>
                     <span className="text-white/40 text-sm block mb-2">Items</span>
                     <div className="space-y-2">
-                      {selectedOrder.items.map((item, i) => (
+                      {selectedOrder.items?.map((item, i) => (
                         <div key={i} className="flex justify-between text-sm">
-                          <span>{item.quantity}x {item.menu_item_name}</span>
-                          <span>{formatPrice(item.total_price)}</span>
+                          <span>{item.quantity}x {item.itemName}</span>
+                          <span>{formatPrice(item.totalPrice)}</span>
                         </div>
                       ))}
                     </div>
@@ -166,33 +155,16 @@ export default function OrdersPage() {
 
                 <div className="p-4 border-t border-white/10 space-y-3">
                   <div className="flex gap-2">
-                    {selectedOrder.status === 'pending' && (
-                      <>
-                        <button
-                          onClick={() => confirmMutation.mutate({ orderId: selectedOrder.id, time: 15 })}
-                          className="flex-1 py-2 px-4 bg-emerald-500 hover:bg-emerald-600 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
-                        >
-                          <Check className="w-4 h-4" /> Confirm
-                        </button>
-                        <button
-                          onClick={() => cancelMutation.mutate(selectedOrder.id)}
-                          className="py-2 px-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </>
-                    )}
-
                     {selectedOrder.status === 'confirmed' && (
                       <button
-                        onClick={() => handleStatusChange(selectedOrder.id, 'preparing')}
+                        onClick={() => handleStatusChange(selectedOrder.id, 'in_progress')}
                         className="flex-1 py-2 px-4 bg-purple-500 hover:bg-purple-600 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
                       >
                         <ChefHat className="w-4 h-4" /> Start Preparing
                       </button>
                     )}
 
-                    {selectedOrder.status === 'preparing' && (
+                    {selectedOrder.status === 'in_progress' && (
                       <button
                         onClick={() => handleStatusChange(selectedOrder.id, 'ready')}
                         className="flex-1 py-2 px-4 bg-emerald-500 hover:bg-emerald-600 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
@@ -203,10 +175,19 @@ export default function OrdersPage() {
 
                     {selectedOrder.status === 'ready' && (
                       <button
-                        onClick={() => handleStatusChange(selectedOrder.id, 'delivered')}
+                        onClick={() => handleStatusChange(selectedOrder.id, 'completed')}
                         className="flex-1 py-2 px-4 bg-blue-500 hover:bg-blue-600 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
                       >
                         <Package className="w-4 h-4" /> Complete
+                      </button>
+                    )}
+
+                    {(selectedOrder.status === 'confirmed' || selectedOrder.status === 'in_progress') && (
+                      <button
+                        onClick={() => handleStatusChange(selectedOrder.id, 'cancelled')}
+                        className="py-2 px-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
                       </button>
                     )}
                   </div>
@@ -228,4 +209,3 @@ export default function OrdersPage() {
     </div>
   )
 }
-

@@ -18,6 +18,15 @@ from app.domain.shared.enums import (
 
 SEED_DATA_PATH = Path(__file__).parent.parent.parent / "NewMigrationDocs" / "db_samples_seed"
 
+FIXED_BUSINESS_IDS = {
+    "BIZ001": "biz00001-0000-0000-0000-000000000001",
+    "BIZ002": "biz00002-0000-0000-0000-000000000002",
+    "BIZ003": "biz00003-0000-0000-0000-000000000003",
+    "BIZ004": "biz00004-0000-0000-0000-000000000004",
+}
+
+DEFAULT_BUSINESS_ID = FIXED_BUSINESS_IDS["BIZ001"]
+
 
 def parse_bool(value: str) -> bool:
     return value.strip().lower() in ('true', '1', 'yes')
@@ -38,12 +47,16 @@ def read_csv(filename: str):
         return list(reader)
 
 
-async def seed_businesses(session) -> Dict[str, int]:
+async def seed_businesses(session) -> Dict[str, str]:
     business_id_map = {}
     rows = read_csv("1_Businesses.csv")
     
     for row in rows:
+        biz_key = row['business_id'].strip()
+        fixed_id = FIXED_BUSINESS_IDS.get(biz_key)
+        
         business = BusinessModel(
+            id=fixed_id,
             name=row['name'].strip(),
             type=parse_enum(BusinessType, row['type']),
             intents=row.get('intents', '').strip() or None,
@@ -57,9 +70,10 @@ async def seed_businesses(session) -> Dict[str, int]:
         )
         session.add(business)
         await session.flush()
-        business_id_map[row['business_id'].strip()] = business.id
+        business_id_map[biz_key] = business.id
     
-    print(f"✅ Seeded {len(rows)} businesses")
+    print(f"[OK] Seeded {len(rows)} businesses")
+    print(f"     Default (Spiceclub): {DEFAULT_BUSINESS_ID}")
     return business_id_map
 
 
@@ -84,7 +98,7 @@ async def seed_resources(session, business_id_map: Dict[str, int]) -> Dict[str, 
         await session.flush()
         resource_id_map[row['resource_id'].strip()] = resource.id
     
-    print(f"✅ Seeded {len(rows)} resources")
+    print(f"[OK] Seeded {len(rows)} resources")
     return resource_id_map
 
 
@@ -132,9 +146,17 @@ async def seed_categories_and_menu(session, business_id_map: Dict[str, int]) -> 
         await session.flush()
         menu_id_map[row['item_id'].strip()] = menu_item.id
     
-    print(f"✅ Seeded {len(category_map)} categories")
-    print(f"✅ Seeded {len(rows)} menu items")
+    print(f"[OK] Seeded {len(category_map)} categories")
+    print(f"[OK] Seeded {len(rows)} menu items")
     return menu_id_map
+
+
+def hash_password(password: str) -> str:
+    import hashlib
+    import secrets
+    salt = secrets.token_hex(16)
+    hashed = hashlib.pbkdf2_hmac('sha256', password.encode(), salt.encode(), 100000)
+    return f"{salt}:{hashed.hex()}"
 
 
 async def seed_users(session) -> Dict[str, int]:
@@ -152,7 +174,19 @@ async def seed_users(session) -> Dict[str, int]:
         await session.flush()
         user_id_map[row['user_id'].strip()] = user.id
     
-    print(f"✅ Seeded {len(rows)} users")
+    admin_user = UserModel(
+        name="Admin User",
+        email="admin@admin.com",
+        phone=None,
+        hashed_password=hash_password("admin"),
+        auth_provider="email",
+        is_active=True
+    )
+    session.add(admin_user)
+    await session.flush()
+    user_id_map["ADMIN"] = admin_user.id
+    
+    print(f"[OK] Seeded {len(rows) + 1} users (including admin@admin.com)")
     return user_id_map
 
 
@@ -177,8 +211,20 @@ async def seed_team_members(session, business_id_map: Dict[str, int], user_id_ma
         session.add(team_member)
         count += 1
     
+    if "ADMIN" in user_id_map:
+        for biz_key, biz_id in business_id_map.items():
+            admin_membership = TeamMemberModel(
+                business_id=biz_id,
+                user_id=user_id_map["ADMIN"],
+                role=UserRole.ADMIN,
+                status=TeamMemberStatus.ACTIVE,
+                is_active=True
+            )
+            session.add(admin_membership)
+            count += 1
+    
     await session.flush()
-    print(f"✅ Seeded {count} team members")
+    print(f"[OK] Seeded {count} team members (admin is admin of all businesses)")
 
 
 async def seed_faqs(session, business_id_map: Dict[str, int]):
@@ -200,7 +246,7 @@ async def seed_faqs(session, business_id_map: Dict[str, int]):
         count += 1
     
     await session.flush()
-    print(f"✅ Seeded {count} FAQs")
+    print(f"[OK] Seeded {count} FAQs")
 
 
 async def drop_all_tables():
@@ -211,12 +257,12 @@ async def drop_all_tables():
         await conn.execute(text("DROP SCHEMA public CASCADE"))
         await conn.execute(text("CREATE SCHEMA public"))
         await conn.execute(text("GRANT ALL ON SCHEMA public TO public"))
-    print("🗑️ Dropped all existing tables")
+    print("[DROP] Dropped all existing tables")
 
 
 async def seed_database():
-    print("🚀 Starting database seeding...")
-    print(f"📁 Reading from: {SEED_DATA_PATH}")
+    print("[START] Starting database seeding...")
+    print(f"[PATH] Reading from: {SEED_DATA_PATH}")
     
     await drop_all_tables()
     await init_db()
@@ -231,11 +277,11 @@ async def seed_database():
             await seed_faqs(session, business_id_map)
             
             await session.commit()
-            print("\n🎉 Database seeded successfully!")
+            print("\n[SUCCESS] Database seeded successfully!")
             
         except Exception as e:
             await session.rollback()
-            print(f"\n❌ Error seeding database: {e}")
+            print(f"\n[ERROR] Error seeding database: {e}")
             raise
 
 

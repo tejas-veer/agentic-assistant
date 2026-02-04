@@ -16,6 +16,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.config import settings
 from app.infrastructure.database.connection import init_db
 from app.infrastructure.llm import LLMFactory
+from app.api.v1.auth_router import router as auth_router
+from app.api.v1.business_router import router as business_router
 from app.api.v1.menu_router import router as menu_router
 from app.api.v1.cart_router import router as cart_router
 from app.api.v1.bill_router import router as bill_router
@@ -117,6 +119,8 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth_router, prefix="/api/v1", tags=["Authentication"])
+app.include_router(business_router, prefix="/api/v1", tags=["Businesses"])
 app.include_router(menu_router, prefix="/api/v1", tags=["Menu"])
 app.include_router(cart_router, prefix="/api/v1", tags=["Cart"])
 app.include_router(bill_router, prefix="/api/v1", tags=["Bills"])

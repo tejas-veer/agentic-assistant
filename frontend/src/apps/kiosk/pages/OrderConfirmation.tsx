@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { CheckCircle, Clock, Home, RefreshCw } from 'lucide-react'
-import { orderApi, type Order } from '@/lib/api'
+import { CheckCircle, Clock, Home, RefreshCw, Hourglass, XCircle } from 'lucide-react'
+import { cartApi } from '@/lib/api'
+import { useKioskStore } from '@/lib/store'
+import type { Cart } from '@/lib/types'
 import { formatPrice, getStatusColor } from '@/lib/utils'
 
 export default function OrderConfirmation() {
   const { orderNumber } = useParams<{ orderNumber: string }>()
-  const [order, setOrder] = useState<Order | null>(null)
+  const { resourceName } = useKioskStore()
+  const [order, setOrder] = useState<Cart | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -19,7 +22,7 @@ export default function OrderConfirmation() {
   const loadOrder = async () => {
     if (!orderNumber) return
     try {
-      const data = await orderApi.getOrderByNumber(orderNumber)
+      const data = await cartApi.getCart(orderNumber)
       setOrder(data)
     } catch (error) {
       console.error('Failed to load order:', error)
@@ -48,8 +51,11 @@ export default function OrderConfirmation() {
     )
   }
 
-  const statusSteps = ['pending', 'confirmed', 'preparing', 'ready']
+  const isPendingApproval = order.status === 'pending_approval'
+  const isRejected = order.status === 'cancelled'
+  const statusSteps = ['pending_approval', 'confirmed', 'in_progress', 'ready', 'completed']
   const currentStepIndex = statusSteps.indexOf(order.status)
+  const displaySteps = ['Submitted', 'Approved', 'Preparing', 'Ready', 'Done']
 
   return (
     <div className="max-w-2xl mx-auto px-6">
@@ -62,23 +68,52 @@ export default function OrderConfirmation() {
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ type: 'spring', delay: 0.2 }}
-          className="w-24 h-24 mx-auto mb-6 rounded-full bg-emerald-500/20 flex items-center justify-center"
+          className={`w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center ${
+            isRejected 
+              ? 'bg-red-500/20' 
+              : isPendingApproval 
+                ? 'bg-amber-500/20' 
+                : 'bg-emerald-500/20'
+          }`}
         >
-          <CheckCircle className="w-12 h-12 text-emerald-400" />
+          {isRejected ? (
+            <XCircle className="w-12 h-12 text-red-400" />
+          ) : isPendingApproval ? (
+            <Hourglass className="w-12 h-12 text-amber-400 animate-pulse" />
+          ) : (
+            <CheckCircle className="w-12 h-12 text-emerald-400" />
+          )}
         </motion.div>
 
-        <h1 className="font-display text-3xl font-bold mb-2">Order Placed!</h1>
-        <p className="text-white/60 text-lg mb-6">Thank you for your order</p>
+        <h1 className="font-display text-3xl font-bold mb-2">
+          {isRejected ? 'Order Rejected' : isPendingApproval ? 'Awaiting Approval' : 'Order Confirmed!'}
+        </h1>
+        <p className="text-white/60 text-lg mb-6">
+          {isRejected 
+            ? order.notes || 'Your order was not approved'
+            : isPendingApproval 
+              ? 'Your order is being reviewed by the restaurant'
+              : 'Thank you for your order'
+          }
+        </p>
 
-        <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/10 rounded-2xl mb-6">
-          <span className="text-white/60">Order Number:</span>
-          <span className="font-display text-2xl font-bold text-brand-400">{order.order_number}</span>
+        <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/10 rounded-2xl mb-4">
+          <span className="text-white/60">Order ID:</span>
+          <span className="font-display text-xl font-bold text-brand-400">{order.id.slice(0, 8).toUpperCase()}</span>
         </div>
 
-        {order.estimated_ready_time && (
+        {resourceName && (
+          <div className="mb-4">
+            <span className="inline-flex items-center gap-2 px-4 py-2 bg-brand-500/20 text-brand-400 rounded-xl text-sm">
+              🪑 {resourceName}
+            </span>
+          </div>
+        )}
+
+        {order.estimatedReadyTime && !isPendingApproval && !isRejected && (
           <div className="flex items-center justify-center gap-2 text-white/60">
             <Clock className="w-5 h-5" />
-            <span>Estimated ready in {order.estimated_ready_time} minutes</span>
+            <span>Estimated ready in {order.estimatedReadyTime} minutes</span>
           </div>
         )}
       </motion.div>
@@ -95,12 +130,12 @@ export default function OrderConfirmation() {
           <div className="absolute top-4 left-0 right-0 h-1 bg-white/10 rounded-full">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${(currentStepIndex / (statusSteps.length - 1)) * 100}%` }}
+              animate={{ width: `${Math.max(0, (currentStepIndex / (statusSteps.length - 1)) * 100)}%` }}
               className="h-full bg-gradient-to-r from-brand-400 to-brand-600 rounded-full"
             />
           </div>
           
-          {statusSteps.map((step, i) => (
+          {displaySteps.map((step, i) => (
             <div key={step} className="relative z-10 flex flex-col items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                 i <= currentStepIndex 
@@ -113,7 +148,7 @@ export default function OrderConfirmation() {
                   <span className="text-sm font-medium">{i + 1}</span>
                 )}
               </div>
-              <span className={`mt-2 text-xs capitalize ${
+              <span className={`mt-2 text-xs ${
                 i <= currentStepIndex ? 'text-white' : 'text-white/40'
               }`}>
                 {step}
@@ -124,7 +159,7 @@ export default function OrderConfirmation() {
 
         <div className="text-center mt-6">
           <span className={`inline-flex px-4 py-2 rounded-full text-sm font-medium border ${getStatusColor(order.status)}`}>
-            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+            {order.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
           </span>
         </div>
       </motion.div>
@@ -138,12 +173,12 @@ export default function OrderConfirmation() {
         <h2 className="font-semibold mb-4">Order Details</h2>
         
         <div className="space-y-3">
-          {order.items.map((item, i) => (
+          {order.items?.map((item, i) => (
             <div key={i} className="flex justify-between text-sm">
               <span className="text-white/80">
-                {item.quantity}x {item.menu_item_name}
+                {item.quantity}x {item.itemName}
               </span>
-              <span>{formatPrice(item.total_price)}</span>
+              <span>{formatPrice(item.totalPrice)}</span>
             </div>
           ))}
           
@@ -180,4 +215,3 @@ export default function OrderConfirmation() {
     </div>
   )
 }
-

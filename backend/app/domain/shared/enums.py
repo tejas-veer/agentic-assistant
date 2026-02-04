@@ -20,12 +20,15 @@ class ResourceType(str, Enum):
 
 class ResourceStatus(str, Enum):
     AVAILABLE = "available"
-    ASSIGNED = "assigned"
+    OCCUPIED = "occupied"
+    RESERVED = "reserved"
+    MAINTENANCE = "maintenance"
 
 
 class CartStatus(str, Enum):
     DRAFT = "draft"
-    CONFIRMED = "confirmed"
+    PENDING_APPROVAL = "pending_approval"  # Customer submitted, waiting for admin
+    CONFIRMED = "confirmed"  # Admin approved
     IN_PROGRESS = "in_progress"
     READY = "ready"
     COMPLETED = "completed"

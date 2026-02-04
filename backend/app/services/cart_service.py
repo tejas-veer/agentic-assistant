@@ -128,6 +128,100 @@ class CartService:
             return None
         return self._cart_to_dict(cart)
 
+    async def submit_order(
+        self,
+        cart_id: str,
+        user_id: str,
+        customer_name: str = None,
+        customer_phone: str = None,
+        resource_id: str = None
+    ) -> Dict[str, Any]:
+        """Customer submits order - goes to PENDING_APPROVAL status"""
+        cart = await self.cart_repo.get_with_items(cart_id)
+        if Util.is_null(cart):
+            raise ValueError("Cart not found")
+
+        if not cart.items:
+            raise ValueError("Cart is empty")
+
+        update_data = {
+            "status": CartStatus.PENDING_APPROVAL,
+            "user_id": user_id
+        }
+        if customer_name:
+            update_data["customer_name"] = customer_name
+        if customer_phone:
+            update_data["customer_phone"] = customer_phone
+        if resource_id:
+            update_data["resource_id"] = resource_id
+
+        await self.cart_repo.update(cart_id, update_data)
+
+        cart = await self.cart_repo.get_with_items(cart_id)
+        cart_data = self._cart_to_dict(cart)
+
+        await connection_manager.broadcast_order_update(cart_data)
+        await event_bus.publish(EventType.ORDER_CREATED, cart_data)
+
+        return cart_data
+
+    async def approve_order(
+        self,
+        cart_id: str,
+        estimated_ready_time: int = None
+    ) -> Dict[str, Any]:
+        """Admin approves order - goes to CONFIRMED status"""
+        cart = await self.cart_repo.get_with_items(cart_id)
+        if Util.is_null(cart):
+            raise ValueError("Cart not found")
+
+        if cart.status != CartStatus.PENDING_APPROVAL:
+            raise ValueError(f"Order cannot be approved (current status: {cart.status.value})")
+
+        update_data = {
+            "status": CartStatus.CONFIRMED
+        }
+        if estimated_ready_time:
+            update_data["estimated_ready_time"] = estimated_ready_time
+
+        await self.cart_repo.update(cart_id, update_data)
+        await self.cart_item_repo.update_all_status_by_cart(cart_id, CartItemStatus.DRAFT, CartItemStatus.PENDING)
+
+        cart = await self.cart_repo.get_with_items(cart_id)
+        cart_data = self._cart_to_dict(cart)
+
+        await connection_manager.broadcast_order_update(cart_data)
+        await event_bus.publish(EventType.ORDER_STATUS_CHANGED, cart_data)
+
+        return cart_data
+
+    async def reject_order(
+        self,
+        cart_id: str,
+        reason: str = None
+    ) -> Dict[str, Any]:
+        """Admin rejects order - goes to CANCELLED status"""
+        cart = await self.cart_repo.get_with_items(cart_id)
+        if Util.is_null(cart):
+            raise ValueError("Cart not found")
+
+        if cart.status != CartStatus.PENDING_APPROVAL:
+            raise ValueError(f"Order cannot be rejected (current status: {cart.status.value})")
+
+        update_data = {
+            "status": CartStatus.CANCELLED,
+            "notes": reason or "Rejected by admin"
+        }
+
+        await self.cart_repo.update(cart_id, update_data)
+
+        cart = await self.cart_repo.get_with_items(cart_id)
+        cart_data = self._cart_to_dict(cart)
+
+        await connection_manager.broadcast_order_update(cart_data)
+
+        return cart_data
+
     async def confirm_order(
         self,
         cart_id: str,
@@ -136,6 +230,7 @@ class CartService:
         resource_id: str = None,
         estimated_ready_time: int = None
     ) -> Dict[str, Any]:
+        """Legacy method - directly confirms (for businesses that don't require approval)"""
         cart = await self.cart_repo.get_with_items(cart_id)
         if Util.is_null(cart):
             raise ValueError("Cart not found")

@@ -1,33 +1,41 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag } from 'lucide-react'
-import { useKioskStore } from '@/lib/store'
-import { cartApi, orderApi } from '@/lib/api'
+import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag, LogIn } from 'lucide-react'
+import { useKioskStore, useAuthStore } from '@/lib/store'
+import { cartApi } from '@/lib/api'
 import { formatPrice } from '@/lib/utils'
 
 export default function CartPage() {
   const navigate = useNavigate()
-  const { sessionId, cart, setCart, setCurrentOrder, reset } = useKioskStore()
+  const { businessId, resourceId, resourceName, cartId, cart, setCart, reset } = useKioskStore()
+  const { user, isAuthenticated } = useAuthStore()
   const [isPlacingOrder, setIsPlacingOrder] = useState(false)
-  const [tableNumber, setTableNumber] = useState('')
   const [customerName, setCustomerName] = useState('')
+  const [customerPhone, setCustomerPhone] = useState('')
 
-  const handleUpdateQuantity = async (menuItemId: string, quantity: number) => {
+  const handleUpdateQuantity = async (cartItemId: string, quantity: number) => {
+    if (!cartId) return
     try {
-      const updatedCart = await cartApi.updateItem(sessionId, {
-        menu_item_id: menuItemId,
-        quantity,
-      })
-      setCart(updatedCart)
+      if (quantity <= 0) {
+        const updatedCart = await cartApi.removeItem(cartId, cartItemId)
+        setCart(updatedCart)
+      } else {
+        const updatedCart = await cartApi.updateItem(cartId, {
+          cartItemId,
+          quantity,
+        })
+        setCart(updatedCart)
+      }
     } catch (error) {
       console.error('Failed to update quantity:', error)
     }
   }
 
-  const handleRemoveItem = async (menuItemId: string) => {
+  const handleRemoveItem = async (cartItemId: string) => {
+    if (!cartId) return
     try {
-      const updatedCart = await cartApi.removeItem(sessionId, menuItemId)
+      const updatedCart = await cartApi.removeItem(cartId, cartItemId)
       setCart(updatedCart)
     } catch (error) {
       console.error('Failed to remove item:', error)
@@ -35,18 +43,22 @@ export default function CartPage() {
   }
 
   const handlePlaceOrder = async () => {
-    if (!cart || cart.items.length === 0) return
+    if (!cartId || !cart || !cart.items || cart.items.length === 0) return
+    if (!isAuthenticated || !user) {
+      // Redirect to login
+      navigate(`/login?business=${businessId}&redirect=/kiosk/cart?business=${businessId}`)
+      return
+    }
 
     setIsPlacingOrder(true)
     try {
-      const order = await orderApi.createOrder({
-        session_id: sessionId,
-        table_number: tableNumber || undefined,
-        customer_name: customerName || undefined,
+      const submittedCart = await cartApi.submitOrder(cartId, {
+        userId: user.id,
+        customerName: customerName || user.name,
+        customerPhone: customerPhone || user.phone || undefined,
+        resourceId: resourceId || undefined,
       })
-      setCurrentOrder(order)
-      reset()
-      navigate(`/kiosk/order/${order.order_number}`)
+      navigate(`/kiosk/order/${submittedCart?.id || cartId}`)
     } catch (error) {
       console.error('Failed to place order:', error)
     } finally {
@@ -54,7 +66,7 @@ export default function CartPage() {
     }
   }
 
-  if (!cart || cart.items.length === 0) {
+  if (!cart || !cart.items || cart.items.length === 0) {
     return (
       <div className="max-w-2xl mx-auto px-6 py-16 text-center">
         <motion.div
@@ -95,7 +107,7 @@ export default function CartPage() {
           <AnimatePresence mode="popLayout">
             {cart.items.map((item, i) => (
               <motion.div
-                key={item.menu_item_id}
+                key={item.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20, height: 0 }}
@@ -107,14 +119,14 @@ export default function CartPage() {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold truncate">{item.menu_item_name}</h3>
-                  <p className="text-brand-400 font-medium">{formatPrice(item.unit_price)}</p>
+                  <h3 className="font-semibold truncate">{item.itemName}</h3>
+                  <p className="text-brand-400 font-medium">{formatPrice(item.unitPrice)}</p>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <motion.button
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => handleUpdateQuantity(item.menu_item_id, item.quantity - 1)}
+                    onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                     className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors"
                   >
                     <Minus className="w-4 h-4" />
@@ -122,7 +134,7 @@ export default function CartPage() {
                   <span className="w-8 text-center font-semibold">{item.quantity}</span>
                   <motion.button
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => handleUpdateQuantity(item.menu_item_id, item.quantity + 1)}
+                    onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                     className="w-8 h-8 rounded-lg bg-brand-500 hover:bg-brand-600 flex items-center justify-center transition-colors"
                   >
                     <Plus className="w-4 h-4" />
@@ -130,12 +142,12 @@ export default function CartPage() {
                 </div>
 
                 <div className="text-right min-w-[80px]">
-                  <p className="font-bold">{formatPrice(item.total_price)}</p>
+                  <p className="font-bold">{formatPrice(item.totalPrice)}</p>
                 </div>
 
                 <motion.button
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => handleRemoveItem(item.menu_item_id)}
+                  onClick={() => handleRemoveItem(item.id)}
                   className="p-2 rounded-lg text-red-400 hover:bg-red-500/20 transition-colors"
                 >
                   <Trash2 className="w-5 h-5" />
@@ -157,16 +169,16 @@ export default function CartPage() {
             <div className="space-y-4 mb-6">
               <input
                 type="text"
-                placeholder="Table Number (optional)"
-                value={tableNumber}
-                onChange={(e) => setTableNumber(e.target.value)}
-                className="w-full input-field"
-              />
-              <input
-                type="text"
                 placeholder="Your Name (optional)"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
+                className="w-full input-field"
+              />
+              <input
+                type="tel"
+                placeholder="Phone Number (optional)"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
                 className="w-full input-field"
               />
             </div>
@@ -187,25 +199,42 @@ export default function CartPage() {
               </div>
             </div>
 
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={handlePlaceOrder}
-              disabled={isPlacingOrder}
-              className="w-full btn-primary py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPlacingOrder ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Placing Order...
-                </span>
-              ) : (
-                `Place Order • ${formatPrice(cart.total)}`
-              )}
-            </motion.button>
+            {resourceName && (
+              <div className="mb-4 p-3 bg-brand-500/20 border border-brand-500/30 rounded-xl">
+                <p className="text-brand-400 text-sm font-medium">
+                  🪑 {resourceName}
+                </p>
+              </div>
+            )}
+
+            {!isAuthenticated ? (
+              <Link
+                to={`/login?business=${businessId}&redirect=/kiosk/cart?business=${businessId}`}
+                className="w-full btn-primary py-4 text-lg flex items-center justify-center gap-2"
+              >
+                <LogIn className="w-5 h-5" />
+                Sign In to Place Order
+              </Link>
+            ) : (
+              <motion.button
+                whileTap={{ scale: 0.98 }}
+                onClick={handlePlaceOrder}
+                disabled={isPlacingOrder}
+                className="w-full btn-primary py-4 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isPlacingOrder ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Submitting Order...
+                  </span>
+                ) : (
+                  `Submit Order • ${formatPrice(cart.total)}`
+                )}
+              </motion.button>
+            )}
           </div>
         </motion.div>
       </div>
     </div>
   )
 }
-

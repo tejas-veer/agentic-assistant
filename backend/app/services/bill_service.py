@@ -2,8 +2,9 @@ from typing import Optional, Dict, Any, List
 from sqlalchemy.ext.asyncio import AsyncSession
 from decimal import Decimal
 from app.infrastructure.database.repositories import BillRepository, BillItemRepository, CartRepository, CartItemRepository
+from app.infrastructure.database.repositories.business_repository import ResourceRepository
 from app.infrastructure.database.models import BillModel, BillItemModel
-from app.domain.shared.enums import BillStatus, BillItemStatus, CartStatus, PaymentMethod
+from app.domain.shared.enums import BillStatus, BillItemStatus, CartStatus, PaymentMethod, ResourceStatus
 from app.utils.null_check import Util
 
 
@@ -13,6 +14,7 @@ class BillService:
         self.bill_item_repo = BillItemRepository(session)
         self.cart_repo = CartRepository(session)
         self.cart_item_repo = CartItemRepository(session)
+        self.resource_repo = ResourceRepository(session)
         self.session = session
 
     async def create_bill_from_cart(
@@ -97,6 +99,11 @@ class BillService:
                 await self.bill_item_repo.mark_as_paid(item.id)
 
             await self.cart_repo.update_status(bill.cart_id, CartStatus.COMPLETED)
+            
+            # Free the resource when bill is fully paid
+            cart = await self.cart_repo.get_by_id(bill.cart_id)
+            if Util.is_not_null(cart) and Util.is_not_null(cart.resource_id):
+                await self.resource_repo.update_status(cart.resource_id, ResourceStatus.AVAILABLE)
 
         return await self.get_bill(bill_id)
 

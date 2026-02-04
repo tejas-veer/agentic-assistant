@@ -1,5 +1,6 @@
 import axios from 'axios'
-import type { Cart, CartItem, Bill, Category, MenuItem, CartStatus, CartItemStatus, PaymentMethod, ApiResponse } from './types'
+import type { Cart, CartItem, Bill, Category, MenuItem, CartStatus, CartItemStatus, PaymentMethod, ApiResponse, Business, Resource } from './types'
+import { DEFAULT_BUSINESS_ID } from './store'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || ''
 
@@ -48,7 +49,7 @@ api.interceptors.response.use(
 export type { MenuItem, Category }
 
 export const menuApi = {
-  getMenu: (businessId: string = '1') => 
+  getMenu: (businessId: string = DEFAULT_BUSINESS_ID) => 
     api.get<ApiResponse<Category[]>>('/menu', { params: { business_id: businessId } }).then(r => r.data.data),
   
   getItem: (itemId: string) =>
@@ -91,6 +92,24 @@ export const cartApi = {
   clearCart: (cartId: string) =>
     api.delete(`/cart/${cartId}`),
 
+  submitOrder: (cartId: string, data: { userId: string; customerName?: string; customerPhone?: string; resourceId?: string }) =>
+    api.post<ApiResponse<Cart>>(`/cart/${cartId}/submit`, {
+      user_id: data.userId,
+      customer_name: data.customerName,
+      customer_phone: data.customerPhone,
+      resource_id: data.resourceId
+    }).then(r => r.data.data),
+
+  approveOrder: (cartId: string, estimatedReadyTime?: number) =>
+    api.post<ApiResponse<Cart>>(`/cart/${cartId}/approve`, null, { 
+      params: estimatedReadyTime ? { estimated_ready_time: estimatedReadyTime } : undefined 
+    }).then(r => r.data.data),
+
+  rejectOrder: (cartId: string, reason?: string) =>
+    api.post<ApiResponse<Cart>>(`/cart/${cartId}/reject`, null, { 
+      params: reason ? { reason } : undefined 
+    }).then(r => r.data.data),
+
   confirmOrder: (cartId: string, data?: { customerName?: string; customerPhone?: string; resourceId?: string }) =>
     api.post<ApiResponse<Cart>>(`/cart/${cartId}/confirm`, {
       customer_name: data?.customerName,
@@ -109,6 +128,9 @@ export const cartApi = {
 
   getPendingOrders: (businessId: string) =>
     api.get<ApiResponse<Cart[]>>(`/cart/business/${businessId}/pending`).then(r => r.data.data),
+
+  getOrdersPendingApproval: (businessId: string) =>
+    api.get<ApiResponse<Cart[]>>(`/cart/business/${businessId}/pending-approval`).then(r => r.data.data),
 
   getOrdersByStatus: (businessId: string, status: CartStatus) =>
     api.get<ApiResponse<Cart[]>>(`/cart/business/${businessId}/status/${status}`).then(r => r.data.data),
@@ -158,5 +180,81 @@ export const assistantApi = {
   endSession: (sessionId: string) =>
     api.post(`/assistant/sessions/${sessionId}/end`),
 }
+
+export const businessApi = {
+  getAll: () =>
+    api.get<ApiResponse<Business[]>>('/businesses').then(r => r.data.data),
+
+  getById: (businessId: string) =>
+    api.get<ApiResponse<Business>>(`/businesses/${businessId}`).then(r => r.data.data),
+
+  getResources: (businessId: string) =>
+    api.get<ApiResponse<Resource[]>>(`/businesses/${businessId}/resources`).then(r => r.data.data),
+
+  getAvailableResources: (businessId: string) =>
+    api.get<ApiResponse<Resource[]>>(`/businesses/${businessId}/resources/available`).then(r => r.data.data),
+
+  occupyResource: (resourceId: string) =>
+    api.post<ApiResponse<Resource>>(`/businesses/resources/${resourceId}/occupy`).then(r => r.data.data),
+
+  freeResource: (resourceId: string) =>
+    api.post<ApiResponse<Resource>>(`/businesses/resources/${resourceId}/free`).then(r => r.data.data),
+
+  updateResourceStatus: (resourceId: string, status: string) =>
+    api.patch<ApiResponse<Resource>>(`/businesses/resources/${resourceId}/status`, { status }).then(r => r.data.data),
+}
+
+export interface AuthUser {
+  id: string
+  name: string
+  email: string
+  phone: string | null
+  isActive: boolean
+  createdAt: string
+}
+
+export interface TeamMembership {
+  id: string
+  businessId: string
+  userId: string
+  role: 'admin' | 'staff'
+  status: string
+  isActive: boolean
+  createdAt: string
+}
+
+export interface AuthResponse {
+  user: AuthUser
+  token: string
+  memberships?: TeamMembership[]
+}
+
+export const authApi = {
+  signup: (data: { name: string; email: string; password: string; phone?: string }) =>
+    api.post<ApiResponse<AuthResponse>>('/auth/signup', data).then(r => r.data.data),
+
+  signin: (data: { email: string; password: string }) =>
+    api.post<ApiResponse<AuthResponse>>('/auth/signin', data).then(r => r.data.data),
+
+  getMe: () =>
+    api.get<ApiResponse<{ user: AuthUser; memberships: TeamMembership[] }>>('/auth/me').then(r => r.data.data),
+
+  assignRole: (data: { business_id: string; user_id: string; role: 'admin' | 'staff' }) =>
+    api.post<ApiResponse<TeamMembership>>('/auth/assign-role', data).then(r => r.data.data),
+
+  removeRole: (businessId: string, userId: string) =>
+    api.delete(`/auth/remove-role/${businessId}/${userId}`),
+
+  getBusinessMembers: (businessId: string) =>
+    api.get<ApiResponse<(TeamMembership & { user?: AuthUser })[]>>(`/auth/business/${businessId}/members`).then(r => r.data.data),
+}
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
 
 export default api
