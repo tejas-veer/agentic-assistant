@@ -1,0 +1,5 @@
+bill_id, cart_id, business_id, subtotal, tax_percent, tax_amount, discount_amount, service_charge, total_amount, paid_amount, payment_mode, status, payment_ref, created_at, updated_at
+BILL001, CART001, BIZ001, 1500, 5, 75, 100, 50, 1525, 1525, UPI, PAID, UPI_AMT_123, 2026-01-21 15:30:00, 2026-01-21 15:35:00
+BILL002, CART003, BIZ001, 1220, 5, 61, 0, 0, 1281, 0, , PENDING, , 2026-01-25 14:00:00, 2026-01-25 14:00:00
+BILL003, CART006, BIZ004, 476, 5, 24, 0, 0, 500, 500, CARD, PAID, CARD_RAJ_456, 2026-01-25 12:20:00, 2026-01-25 12:22:00
+BILL004, CART007, BIZ004, 328, 5, 16, 0, 0, 344, 0, , PENDING, , 2026-01-25 13:00:00, 2026-01-25 13:00:00

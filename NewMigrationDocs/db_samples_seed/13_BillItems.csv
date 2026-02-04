@@ -1,0 +1,6 @@
+bill_item_id, bill_id, cart_item_id, item_name, quantity, unit_price, total_price, paid_by_user_id, status, created_at, updated_at
+BI001, BILL001, CI001, Butter Chicken, 2, 450, 900, U005, PAID, 2026-01-21 15:30:00, 2026-01-21 15:35:00
+BI002, BILL001, CI002, Garlic Naan, 4, 80, 320, U005, PAID, 2026-01-21 15:30:00, 2026-01-21 15:35:00
+BI003, BILL001, CI003, Dal Makhani, 1, 280, 280, U005, PAID, 2026-01-21 15:30:00, 2026-01-21 15:35:00
+BI004, BILL002, CI004, Butter Chicken, 2, 450, 900, , UNPAID, 2026-01-25 14:00:00, 2026-01-25 14:00:00
+BI005, BILL002, CI005, Garlic Naan, 4, 80, 320, , UNPAID, 2026-01-25 14:00:00, 2026-01-25 14:00:00

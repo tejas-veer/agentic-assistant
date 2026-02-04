@@ -1,0 +1,4 @@
+address_id, user_id, type, address_line1, city, pincode, lat_long
+ADDR001, U005, HOME, 123 Green Park, New Delhi, 110016, "28.6139, 77.2090"
+ADDR002, U005, WORK, 456 Tech Hub, Gurgaon, 122002, "28.4595, 77.0266"
+ADDR003, U006, HOME, 789 Rose Garden, Mumbai, 400050, "19.0760, 72.8777"

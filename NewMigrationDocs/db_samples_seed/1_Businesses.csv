@@ -1,0 +1,5 @@
+business_id, name, type, intents, requires_approval, payment_flow, payment_modes, resource_type, contact_phone, timings, created_at, updated_at
+BIZ001, Spiceclub Restaurant, RESTAURANT, FOOD_ORDER, true, POST_SERVICE, "CASH,UPI", TABLE, +91 98765 43210, 12:00 PM - 11:00 PM, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ002, Grand Palace Hotel, HOTEL, BOOKING, true, PRE_SERVICE, "CARD,UPI,CASH", ROOM, +91 98765 43211, 24/7, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ003, Dr. Sharma Clinic, CLINIC, APPOINTMENT, true, PRE_SERVICE, "CASH,UPI", SLOT, +91 98765 43212, 9:00 AM - 6:00 PM, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ004, PacDonalds, RESTAURANT, FOOD_ORDER, false, POST_SERVICE, "CASH,UPI,CARD", TABLE, +91 98765 43213, 10:00 AM - 12:00 AM, 2026-01-01 00:00:00, 2026-01-01 00:00:00

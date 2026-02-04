@@ -1,0 +1,13 @@
+user_id, name, phone, email, auth_provider, auth_id, created_at, updated_at
+U001, Admin Rahul, +91 90001 00001, admin.rahul@spiceclub.com, google, g_admin_rahul, 2026-01-20 10:00:00, 2026-01-20 10:00:00
+U002, Admin Priya, +91 90001 00002, admin.priya@spiceclub.com, google, g_admin_priya, 2026-01-20 11:00:00, 2026-01-20 11:00:00
+U003, Staff Raju, +91 90001 00003, staff.raju@spiceclub.com, email_otp, staff.raju@spiceclub.com, 2026-01-21 09:00:00, 2026-01-21 09:00:00
+U004, Staff Sita, +91 90001 00004, staff.sita@spiceclub.com, email_otp, staff.sita@spiceclub.com, 2026-01-21 09:00:00, 2026-01-21 09:00:00
+U005, Customer Amit, +91 80001 00001, amit.customer@gmail.com, google, g_cust_amit, 2026-01-22 10:00:00, 2026-01-22 10:00:00
+U006, Customer Neha, +91 80001 00002, neha.customer@gmail.com, email_otp, neha.customer@gmail.com, 2026-01-22 11:00:00, 2026-01-22 11:00:00
+U007, Guest User, +91 80001 00003, , , , 2026-01-23 12:00:00, 2026-01-23 12:00:00
+U008, Admin Rocky, +91 90002 00001, admin.rocky@pacdonalds.com, google, g_admin_rocky, 2026-01-20 10:00:00, 2026-01-20 10:00:00
+U009, Staff Bunty, +91 90002 00002, staff.bunty@pacdonalds.com, email_otp, staff.bunty@pacdonalds.com, 2026-01-21 09:00:00, 2026-01-21 09:00:00
+U010, Staff Pinky, +91 90002 00003, staff.pinky@pacdonalds.com, email_otp, staff.pinky@pacdonalds.com, 2026-01-21 09:00:00, 2026-01-21 09:00:00
+U011, Customer Raj, +91 80002 00001, raj.customer@gmail.com, google, g_cust_raj, 2026-01-22 12:00:00, 2026-01-22 12:00:00
+U012, Customer Simran, +91 80002 00002, simran.customer@gmail.com, google, g_cust_simran, 2026-01-22 13:00:00, 2026-01-22 13:00:00

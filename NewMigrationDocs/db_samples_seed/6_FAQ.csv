@@ -1,0 +1,30 @@
+business_id, question, answer, created_at, updated_at
+BIZ001, "What are your timings?", "We are open from 12:00 PM to 11:00 PM every day.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ001, "Do you accept card payments?", "We accept Cash and UPI payments after dining. No cards at the moment.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ001, "Do you have parking?", "Yes we have free valet parking for our guests.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ001, "Is there a dress code?", "Smart casual. No shorts or slippers please.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ001, "Do you take reservations?", "Yes! Call us at +91 98765 43210 or tell me your preferred date and time.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ001, "Is the food spicy?", "We can adjust spice levels. Just let us know your preference when ordering.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ001, "Do you have vegetarian options?", "Yes! We have a wide variety of vegetarian starters and main courses.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ001, "What is your specialty?", "Our Butter Chicken and Dal Makhani are crowd favorites!", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ002, "What is check-in time?", "Check-in is at 2:00 PM and check-out is at 12:00 PM noon.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ002, "Is breakfast included?", "Yes all rooms include complimentary breakfast.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ002, "Do you have WiFi?", "Yes we have free high-speed WiFi in all rooms and common areas.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ002, "Is there a swimming pool?", "Yes we have a rooftop pool open from 7 AM to 9 PM.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ002, "Do you provide airport pickup?", "Yes! Airport pickup is available for Rs 1500. Just let us know your flight details.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ002, "What payment methods do you accept?", "We accept Card UPI and Cash payments.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ002, "Is there a gym?", "Yes 24/7 gym access for all our guests.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ003, "What are the clinic timings?", "Dr. Sharma is available from 9:00 AM to 6:00 PM Monday to Saturday.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ003, "Do I need an appointment?", "Yes appointments are required. Walk-ins subject to availability.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ003, "What is the consultation fee?", "General consultation is Rs 500. Follow-up visits are Rs 300.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ003, "Do you accept insurance?", "We provide receipts for insurance claims. Direct insurance billing not available yet.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ003, "Is parking available?", "Yes free parking available in the clinic building.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ003, "What should I bring for my first visit?", "Please bring any previous medical reports and a list of current medications.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ004, "What are your timings?", "We are open from 10:00 AM to 12:00 AM midnight every day.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ004, "Do you have drive-thru?", "Yes! Our drive-thru is open during all business hours.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ004, "What payment methods do you accept?", "We accept Cash, UPI, and Card payments.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ004, "Do you have vegetarian options?", "Yes! Try our Veg Burger, Fries, and Onion Rings.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ004, "What is your best seller?", "Our Chicken Burger and Combo Meal 1 are customer favorites!", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ004, "Do you have combos?", "Yes! Check out our Combo Meals and Family Pack for great value.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ004, "Is there WiFi?", "Yes free WiFi for all dine-in customers.", 2026-01-01 00:00:00, 2026-01-01 00:00:00
+BIZ004, "Do you do delivery?", "Yes! Order through our app for home delivery.", 2026-01-01 00:00:00, 2026-01-01 00:00:00

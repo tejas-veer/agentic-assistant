@@ -1,0 +1,57 @@
+item_id, business_id, name, category, price, available, quantity, description, created_at, updated_at
+M001, BIZ001, Paneer Tikka, Starters, 320, true, 50, Cottage cheese marinated in spices and grilled, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M002, BIZ001, Chicken Tikka, Starters, 380, true, 40, Boneless chicken marinated and grilled in tandoor, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M003, BIZ001, Veg Spring Rolls, Starters, 220, true, 30, Crispy rolls with mixed vegetable filling, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M004, BIZ001, Fish Amritsari, Starters, 420, true, 25, Mustard fish fried Amritsari style, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M005, BIZ001, Butter Chicken, Main Course, 450, true, 60, Creamy tomato-based chicken curry, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M006, BIZ001, Dal Makhani, Main Course, 280, true, 40, Slow-cooked black lentils with cream, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M007, BIZ001, Paneer Butter Masala, Main Course, 350, true, 45, Cottage cheese in rich tomato gravy, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M008, BIZ001, Chicken Biryani, Main Course, 380, true, 50, Fragrant basmati rice with spiced chicken, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M009, BIZ001, Veg Biryani, Main Course, 320, true, 40, Aromatic rice with mixed vegetables, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M010, BIZ001, Mutton Rogan Josh, Main Course, 520, true, 30, Kashmiri style mutton curry, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M011, BIZ001, Garlic Naan, Breads, 80, true, 100, Garlic flavored leavened bread, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M012, BIZ001, Butter Naan, Breads, 60, true, 100, Butter brushed leavened bread, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M013, BIZ001, Laccha Paratha, Breads, 70, true, 80, Layered whole wheat bread, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M014, BIZ001, Jeera Rice, Rice, 180, true, 50, Cumin flavored basmati rice, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M015, BIZ001, Steamed Rice, Rice, 120, true, 60, Plain steamed basmati rice, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M016, BIZ001, Gulab Jamun, Desserts, 150, true, 40, Deep fried milk solids in sugar syrup, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M017, BIZ001, Rasmalai, Desserts, 180, true, 30, Cottage cheese dumplings in sweetened milk, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M018, BIZ001, Kulfi, Desserts, 120, true, 50, Traditional Indian ice cream, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M019, BIZ001, Masala Chai, Beverages, 50, true, 100, Spiced Indian tea, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M020, BIZ001, Fresh Lime Soda, Beverages, 80, true, 100, Lemon with soda sweet/salt, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M021, BIZ001, Mango Lassi, Beverages, 120, true, 60, Mango yogurt drink, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+M022, BIZ001, Cold Coffee, Beverages, 150, true, 50, Chilled coffee with ice cream, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F001, BIZ004, Classic Burger, Burgers, 149, true, 100, Juicy beef patty with lettuce and cheese, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F002, BIZ004, Chicken Burger, Burgers, 169, true, 100, Crispy chicken patty with mayo, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F003, BIZ004, Veg Burger, Burgers, 129, true, 80, Veggie patty with fresh veggies, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F004, BIZ004, Double Cheese Burger, Burgers, 229, true, 60, Two patties with extra cheese, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F005, BIZ004, Spicy Chicken Burger, Burgers, 189, true, 80, Spicy crispy chicken with jalapenos, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F006, BIZ004, Regular Fries, Sides, 79, true, 200, Crispy golden french fries, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F007, BIZ004, Large Fries, Sides, 119, true, 150, Large portion of crispy fries, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F008, BIZ004, Chicken Nuggets 6pc, Sides, 149, true, 100, 6 pieces of crispy chicken nuggets, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F009, BIZ004, Chicken Nuggets 10pc, Sides, 229, true, 80, 10 pieces of crispy chicken nuggets, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F010, BIZ004, Onion Rings, Sides, 99, true, 100, Crispy battered onion rings, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F011, BIZ004, Coke, Beverages, 59, true, 200, Chilled Coca-Cola, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F012, BIZ004, Sprite, Beverages, 59, true, 200, Chilled Sprite, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F013, BIZ004, Fanta, Beverages, 59, true, 200, Chilled Fanta Orange, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F014, BIZ004, Chocolate Shake, Beverages, 129, true, 100, Thick chocolate milkshake, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F015, BIZ004, Strawberry Shake, Beverages, 129, true, 100, Creamy strawberry milkshake, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F016, BIZ004, Vanilla Sundae, Desserts, 79, true, 100, Soft serve vanilla ice cream, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F017, BIZ004, Chocolate Sundae, Desserts, 89, true, 100, Soft serve with chocolate sauce, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F018, BIZ004, Apple Pie, Desserts, 59, true, 80, Warm apple pie, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F019, BIZ004, Combo Meal 1, Combos, 249, true, 100, Chicken Burger + Fries + Coke, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F020, BIZ004, Combo Meal 2, Combos, 299, true, 100, Double Cheese Burger + Large Fries + Shake, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+F021, BIZ004, Family Pack, Combos, 599, true, 50, 4 Burgers + 2 Large Fries + 4 Drinks, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+H001, BIZ002, Deluxe Room, Rooms, 3500, true, 10, AC room with city view and breakfast, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+H002, BIZ002, Suite, Rooms, 6000, true, 5, Spacious suite with living area and pool view, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+H003, BIZ002, Presidential Suite, Rooms, 15000, true, 2, Luxury suite with panoramic view, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+H004, BIZ002, Room Service - Breakfast, Services, 500, true, 100, Continental or Indian breakfast in room, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+H005, BIZ002, Spa Treatment, Services, 2000, true, 10, 60 min relaxation massage, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+H006, BIZ002, Airport Pickup, Services, 1500, true, 5, AC car pickup from airport, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+H007, BIZ002, Laundry Express, Services, 300, true, 50, Same day laundry service, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+D001, BIZ003, General Consultation, Consultation, 500, true, 20, General health checkup with Dr. Sharma, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+D002, BIZ003, Follow-up Visit, Consultation, 300, true, 30, Follow up on previous consultation, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+D003, BIZ003, Health Checkup Package, Packages, 2500, true, 10, Complete health screening package, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+D004, BIZ003, Diabetes Screening, Packages, 1500, true, 15, Blood sugar and related tests, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+D005, BIZ003, Blood Test - Basic, Lab Tests, 800, true, 50, CBC and basic blood panel, 2026-01-01 00:00:00, 2026-01-01 00:00:00
+D006, BIZ003, ECG, Lab Tests, 400, true, 20, Electrocardiogram test, 2026-01-01 00:00:00, 2026-01-01 00:00:00
