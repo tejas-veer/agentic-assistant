@@ -3,6 +3,7 @@ import { Routes, Route, useSearchParams, useNavigate } from 'react-router-dom'
 import DashboardPage from './pages/DashboardPage'
 import OrdersPage from './pages/OrdersPage'
 import TeamPage from './pages/TeamPage'
+import ResourcesPage from './pages/ResourcesPage'
 import AdminLayout from './components/AdminLayout'
 import { useAdminStore, useAuthStore, DEFAULT_BUSINESS_ID } from '../../lib/store'
 
@@ -36,6 +37,7 @@ export default function AdminApp() {
       <Routes>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/resources" element={<ResourcesPage />} />
         <Route path="/team" element={<TeamPage />} />
       </Routes>
     </AdminLayout>

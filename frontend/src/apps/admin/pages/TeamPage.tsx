@@ -38,6 +38,31 @@ export default function TeamPage() {
     }
   }
 
+  const handleAddMember = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newUserEmail) return
+
+    try {
+      setAdding(true)
+      const result = await authApi.assignRole({
+        business_id: businessId,
+        email: newUserEmail,
+        role: newUserRole
+      })
+
+      // Reload members to get full user details
+      await loadMembers()
+
+      setShowAddModal(false)
+      setNewUserEmail('')
+      setNewUserRole('staff')
+    } catch (err: any) {
+      alert(err.response?.data?.detail || 'Failed to add member')
+    } finally {
+      setAdding(false)
+    }
+  }
+
   const handleRemoveMember = async (userId: string) => {
     if (!confirm('Are you sure you want to remove this team member?')) return
 
@@ -52,7 +77,7 @@ export default function TeamPage() {
   const handleChangeRole = async (userId: string, newRole: 'admin' | 'staff') => {
     try {
       await authApi.assignRole({ business_id: businessId, user_id: userId, role: newRole })
-      setMembers(members.map(m => 
+      setMembers(members.map(m =>
         m.userId === userId ? { ...m, role: newRole } : m
       ))
     } catch (err: any) {
@@ -91,6 +116,13 @@ export default function TeamPage() {
           <h1 className="font-display text-3xl font-bold mb-2">Team Management</h1>
           <p className="text-white/60">Manage team members and their roles</p>
         </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="px-4 py-2 bg-brand-500 hover:bg-brand-400 text-white rounded-xl flex items-center gap-2 transition-colors font-medium"
+        >
+          <UserPlus className="w-5 h-5" />
+          Add Member
+        </button>
       </motion.div>
 
       {error && (
@@ -173,10 +205,69 @@ export default function TeamPage() {
 
       <div className="mt-6 p-4 bg-white/5 rounded-xl border border-white/10">
         <p className="text-white/60 text-sm">
-          <strong className="text-white">Note:</strong> To add new team members, they first need to sign up on the platform. 
+          <strong className="text-white">Note:</strong> To add new team members, they first need to sign up on the platform.
           Then you can find them by their email and assign them a role.
         </p>
       </div>
+
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-surface-900 border border-white/10 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+          >
+            <div className="p-6 border-b border-white/10">
+              <h3 className="font-display text-xl font-bold">Add Team Member</h3>
+            </div>
+
+            <form onSubmit={handleAddMember} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm text-white/60 mb-1">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  value={newUserEmail}
+                  onChange={(e) => setNewUserEmail(e.target.value)}
+                  placeholder="Enter user email"
+                  className="w-full bg-surface-800 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400"
+                />
+                <p className="text-xs text-white/40 mt-1">User must already have an account</p>
+              </div>
+
+              <div>
+                <label className="block text-sm text-white/60 mb-1">Role</label>
+                <select
+                  value={newUserRole}
+                  onChange={(e) => setNewUserRole(e.target.value as 'admin' | 'staff')}
+                  className="w-full bg-surface-800 border border-white/10 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-400"
+                >
+                  <option value="staff">Staff</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={adding}
+                  className="flex-1 px-4 py-2 bg-brand-500 hover:bg-brand-400 text-white rounded-xl font-medium transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {adding && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Add Member
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }

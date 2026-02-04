@@ -24,7 +24,8 @@ class SigninRequest(BaseModel):
 
 class AssignRoleRequest(BaseModel):
     business_id: str
-    user_id: str
+    user_id: Optional[str] = None
+    email: Optional[EmailStr] = None
     role: UserRole
 
 
@@ -104,6 +105,7 @@ async def assign_role(
             assigner_user_id=user_id,
             business_id=data.business_id,
             target_user_id=data.user_id,
+            email=data.email,
             role=data.role
         )
         return ApiResponse(success=True, data=result)

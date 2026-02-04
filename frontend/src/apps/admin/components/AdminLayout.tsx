@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import { Link, useLocation, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { LayoutDashboard, ClipboardList, Users, LogOut, User, ArrowLeft } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, Users, LogOut, User, ArrowLeft, Sofa } from 'lucide-react'
 import { useAuthStore, useAdminStore } from '@/lib/store'
 
 interface AdminLayoutProps {
@@ -21,6 +21,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const navItems = [
     { path: `/admin?business=${currentBusinessId}`, icon: LayoutDashboard, label: 'Dashboard', match: '/admin' },
     { path: `/admin/orders?business=${currentBusinessId}`, icon: ClipboardList, label: 'Orders', match: '/admin/orders' },
+    { path: `/admin/resources?business=${currentBusinessId}`, icon: Sofa, label: 'Resources', match: '/admin/resources' },
     ...(isAdmin ? [{ path: `/admin/team?business=${currentBusinessId}`, icon: Users, label: 'Team', match: '/admin/team' }] : []),
   ]
 
@@ -48,11 +49,10 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative ${
-                  active 
-                    ? 'text-white' 
-                    : 'text-white/60 hover:text-white hover:bg-white/5'
-                }`}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all relative ${active
+                  ? 'text-white'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  }`}
               >
                 {active && (
                   <motion.div
@@ -87,14 +87,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             </div>
           )}
 
-          <Link 
+          <Link
             to={`/business/${currentBusinessId}`}
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-all w-full"
           >
             <ArrowLeft className="w-5 h-5" />
             <span>Back to Business</span>
           </Link>
-          <button 
+          <button
             onClick={logout}
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-white/60 hover:text-red-400 hover:bg-red-500/10 transition-all w-full"
           >

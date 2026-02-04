@@ -114,16 +114,26 @@ class AuthService:
         self,
         assigner_user_id: str,
         business_id: str,
-        target_user_id: str,
-        role: UserRole
+        target_user_id: str = None,
+        email: str = None,
+        role: UserRole = UserRole.STAFF
     ) -> dict:
         assigner_membership = await self.team_member_repo.get_by_business_and_user(business_id, assigner_user_id)
         if Util.is_null(assigner_membership) or assigner_membership.role != UserRole.ADMIN:
             raise ValueError("Only admins can assign roles")
 
+        if not target_user_id and not email:
+            raise ValueError("Either target_user_id or email must be provided")
+
+        if not target_user_id:
+            user = await self.user_repo.get_by_email(email)
+            if Util.is_null(user):
+                raise ValueError(f"User with email {email} not found. Please ask them to sign up first.")
+            target_user_id = user.id
+
         existing = await self.team_member_repo.get_by_business_and_user(business_id, target_user_id)
         if Util.is_not_null(existing):
-            await self.team_member_repo.update(existing.id, {"role": role})
+            await self.team_member_repo.update(existing.id, {"role": role, "is_active": True})
             existing = await self.team_member_repo.get_by_id(existing.id)
             return self._membership_to_dict(existing)
 

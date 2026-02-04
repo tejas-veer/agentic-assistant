@@ -49,13 +49,13 @@ api.interceptors.response.use(
 export type { MenuItem, Category }
 
 export const menuApi = {
-  getMenu: (businessId: string = DEFAULT_BUSINESS_ID) => 
+  getMenu: (businessId: string = DEFAULT_BUSINESS_ID) =>
     api.get<ApiResponse<Category[]>>('/menu', { params: { business_id: businessId } }).then(r => r.data.data),
-  
+
   getItem: (itemId: string) =>
     api.get<ApiResponse<MenuItem>>(`/menu/items/${itemId}`).then(r => r.data.data),
-  
-  searchItems: (businessId: string, q: string) => 
+
+  searchItems: (businessId: string, q: string) =>
     api.get<ApiResponse<MenuItem[]>>(`/menu/search`, { params: { business_id: businessId, q } }).then(r => r.data.data),
 }
 
@@ -67,28 +67,28 @@ export const cartApi = {
       device_id: data.deviceId
     }).then(r => r.data.data),
 
-  getCart: (cartId: string) => 
+  getCart: (cartId: string) =>
     api.get<ApiResponse<Cart | null>>(`/cart/${cartId}`).then(r => r.data.data),
-  
+
   getCartBySession: (sessionId: string) =>
     api.get<ApiResponse<Cart | null>>(`/cart/session/${sessionId}`).then(r => r.data.data),
-  
+
   addItem: (cartId: string, data: { itemId: string; quantity: number; notes?: string }) =>
     api.post<ApiResponse<Cart>>(`/cart/${cartId}/items`, {
       item_id: data.itemId,
       quantity: data.quantity,
       notes: data.notes
     }).then(r => r.data.data),
-  
+
   updateItem: (cartId: string, data: { cartItemId: string; quantity: number }) =>
     api.put<ApiResponse<Cart>>(`/cart/${cartId}/items`, {
       cart_item_id: data.cartItemId,
       quantity: data.quantity
     }).then(r => r.data.data),
-  
+
   removeItem: (cartId: string, cartItemId: string) =>
     api.delete<ApiResponse<Cart>>(`/cart/${cartId}/items/${cartItemId}`).then(r => r.data.data),
-  
+
   clearCart: (cartId: string) =>
     api.delete(`/cart/${cartId}`),
 
@@ -101,13 +101,13 @@ export const cartApi = {
     }).then(r => r.data.data),
 
   approveOrder: (cartId: string, estimatedReadyTime?: number) =>
-    api.post<ApiResponse<Cart>>(`/cart/${cartId}/approve`, null, { 
-      params: estimatedReadyTime ? { estimated_ready_time: estimatedReadyTime } : undefined 
+    api.post<ApiResponse<Cart>>(`/cart/${cartId}/approve`, null, {
+      params: estimatedReadyTime ? { estimated_ready_time: estimatedReadyTime } : undefined
     }).then(r => r.data.data),
 
   rejectOrder: (cartId: string, reason?: string) =>
-    api.post<ApiResponse<Cart>>(`/cart/${cartId}/reject`, null, { 
-      params: reason ? { reason } : undefined 
+    api.post<ApiResponse<Cart>>(`/cart/${cartId}/reject`, null, {
+      params: reason ? { reason } : undefined
     }).then(r => r.data.data),
 
   confirmOrder: (cartId: string, data?: { customerName?: string; customerPhone?: string; resourceId?: string }) =>
@@ -121,9 +121,9 @@ export const cartApi = {
     api.patch<ApiResponse<Cart>>(`/cart/${cartId}/status`, { status }).then(r => r.data.data),
 
   updateItemStatus: (cartItemId: string, status: CartItemStatus, preparedBy?: string) =>
-    api.patch<ApiResponse<Cart>>(`/cart/items/${cartItemId}/status`, { 
-      status, 
-      prepared_by: preparedBy 
+    api.patch<ApiResponse<Cart>>(`/cart/items/${cartItemId}/status`, {
+      status,
+      prepared_by: preparedBy
     }).then(r => r.data.data),
 
   getPendingOrders: (businessId: string) =>
@@ -173,10 +173,10 @@ export const billApi = {
 export const assistantApi = {
   createSession: (data: { assistant_type: string; device_id?: string }) =>
     api.post<ApiResponse<{ session_id: string }>>('/assistant/sessions', data).then(r => r.data.data),
-  
+
   sendText: (data: { session_id: string; text: string; device_id: string; business_id?: string }) =>
     api.post<ApiResponse<{ response: string; action?: string }>>('/assistant/text', data).then(r => r.data.data),
-  
+
   endSession: (sessionId: string) =>
     api.post(`/assistant/sessions/${sessionId}/end`),
 }
@@ -239,7 +239,7 @@ export const authApi = {
   getMe: () =>
     api.get<ApiResponse<{ user: AuthUser; memberships: TeamMembership[] }>>('/auth/me').then(r => r.data.data),
 
-  assignRole: (data: { business_id: string; user_id: string; role: 'admin' | 'staff' }) =>
+  assignRole: (data: { business_id: string; user_id?: string; email?: string; role: 'admin' | 'staff' }) =>
     api.post<ApiResponse<TeamMembership>>('/auth/assign-role', data).then(r => r.data.data),
 
   removeRole: (businessId: string, userId: string) =>
