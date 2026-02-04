@@ -1,6 +1,10 @@
 """
-Python Enums for the new schema
+Python Enums for the merged schema
 Copy this to: backend/app/domain/shared/enums.py
+
+Includes:
+- All NEW enums for multi-tenant system
+- All EXISTING enums from prototype (AssistantType, ConversationStatus, etc.)
 """
 
 from enum import Enum
@@ -94,3 +98,21 @@ class ConversationStatus(str, Enum):
     ACTIVE = "active"
     COMPLETED = "completed"
     ABANDONED = "abandoned"
+
+
+class DeviceType(str, Enum):
+    KIOSK = "kiosk"
+    TABLET = "tablet"
+    WEB = "web"
+    PHONE = "phone"
+
+
+class AddressType(str, Enum):
+    HOME = "home"
+    WORK = "work"
+    OTHER = "other"
+
+
+class TeamMemberStatus(str, Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"

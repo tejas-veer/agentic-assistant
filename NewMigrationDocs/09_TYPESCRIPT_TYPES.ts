@@ -1,6 +1,8 @@
 /**
- * TypeScript Types for the new schema
+ * TypeScript Types for the merged schema
  * Copy this to: frontend/src/lib/types.ts
+ *
+ * Standard integer PKs and FKs (no string-based readable IDs)
  */
 
 // ==================== ENUMS ====================
@@ -13,7 +15,7 @@ export type ResourceType = 'table' | 'room' | 'slot'
 
 export type ResourceStatus = 'available' | 'assigned'
 
-export type CartStatus = 
+export type CartStatus =
   | 'draft'
   | 'confirmed'
   | 'in_progress'
@@ -22,7 +24,7 @@ export type CartStatus =
   | 'abandoned'
   | 'cancelled'
 
-export type CartItemStatus = 
+export type CartItemStatus =
   | 'draft'
   | 'pending'
   | 'preparing'
@@ -31,13 +33,13 @@ export type CartItemStatus =
   | 'abandoned'
   | 'cancelled'
 
-export type BillStatus = 
+export type BillStatus =
   | 'pending'
   | 'partial'
   | 'paid'
   | 'refunded'
 
-export type BillItemStatus = 
+export type BillItemStatus =
   | 'unpaid'
   | 'paid'
   | 'refunded'
@@ -50,132 +52,167 @@ export type OrderSource = 'app' | 'voice' | 'chat'
 
 export type IntentType = 'food_order' | 'booking' | 'appointment'
 
+export type AssistantType = 'voice' | 'call' | 'chat'
+
+export type ConversationStatus = 'active' | 'completed' | 'abandoned'
+
+export type DeviceType = 'kiosk' | 'tablet' | 'web' | 'phone'
+
+export type AddressType = 'home' | 'work' | 'other'
+
+export type TeamMemberStatus = 'active' | 'inactive'
+
 // ==================== INTERFACES ====================
 
 export interface Business {
-  id: string
-  businessId: string
+  id: number
   name: string
   type: BusinessType
-  intents: string
+  intents: string | null
   requiresApproval: boolean
   paymentFlow: PaymentFlow
-  paymentModes: string
-  resourceType: ResourceType
-  contactPhone: string
-  timings: string
+  paymentModes: string | null
+  resourceType: ResourceType | null
+  contactPhone: string | null
+  timings: string | null
+  isActive: boolean
   createdAt: Date
-  updatedAt: Date
+  updatedAt: Date | null
 }
 
 export interface Resource {
-  id: string
-  resourceId: string
-  businessId: string
+  id: number
+  businessId: number
   type: ResourceType
   name: string
   capacity: number
   metaJson: Record<string, unknown>
   status: ResourceStatus
+  isActive: boolean
   createdAt: Date
-  updatedAt: Date
+  updatedAt: Date | null
+}
+
+export interface Category {
+  id: number
+  businessId: number
+  name: string
+  description: string | null
+  imageUrl: string | null
+  displayOrder: number
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date | null
+  items?: MenuItem[]
 }
 
 export interface MenuItem {
-  id: string
-  itemId: string
-  businessId: string
+  id: number
+  businessId: number
+  categoryId: number
   name: string
-  category: string
+  description: string | null
   price: number
+  imageUrl: string | null
   available: boolean
   quantity: number
-  description: string
+  preparationTimeMins: number
+  displayOrder: number
+  isActive: boolean
   createdAt: Date
-  updatedAt: Date
+  updatedAt: Date | null
+  category?: Category
 }
 
 export interface User {
-  id: string
-  userId: string
+  id: number
   name: string
-  phone: string
-  email: string
-  authProvider: string
-  authId: string
+  phone: string | null
+  email: string | null
+  authProvider: string | null
+  authId: string | null
+  isActive: boolean
   createdAt: Date
-  updatedAt: Date
+  updatedAt: Date | null
 }
 
 export interface TeamMember {
-  id: string
-  memberId: string
-  businessId: string
-  userId: string
+  id: number
+  businessId: number
+  userId: number
   role: UserRole
-  status: string
+  status: TeamMemberStatus
+  isActive: boolean
   createdAt: Date
-  updatedAt: Date
-  // Joined data
+  updatedAt: Date | null
   user?: User
+  business?: Business
 }
 
 export interface Address {
-  id: string
-  addressId: string
-  userId: string
-  type: 'home' | 'work' | 'other'
+  id: number
+  userId: number
+  type: AddressType
   addressLine1: string
   city: string
   pincode: string
-  latLong: string
+  latLong: string | null
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date | null
 }
 
 export interface Cart {
-  id: string
-  cartId: string
-  userId: string | null
-  businessId: string
+  id: number
+  sessionId: string | null
+  deviceId: string | null
+  userId: number | null
+  businessId: number
   intent: IntentType
-  resourceId: string | null
-  customerName: string
-  customerPhone: string
+  resourceId: number | null
+  customerName: string | null
+  customerPhone: string | null
   itemCount: number
   subtotal: number
+  tax: number
+  total: number
   status: CartStatus
   source: OrderSource
+  notes: string | null
+  estimatedReadyTime: number | null
+  assistantSessionId: number | null
+  isActive: boolean
   createdAt: Date
-  updatedAt: Date
-  // Joined data
+  updatedAt: Date | null
   items?: CartItem[]
   resource?: Resource
   bill?: Bill
+  business?: Business
+  user?: User
 }
 
 export interface CartItem {
-  id: string
-  cartItemId: string
-  cartId: string
-  itemId: string
+  id: number
+  cartId: number
+  itemId: number
   itemName: string
   quantity: number
   unitPrice: number
   totalPrice: number
-  notes: string
+  notes: string | null
   status: CartItemStatus
-  preparedBy: string | null
+  preparedBy: number | null
+  isActive: boolean
   createdAt: Date
-  updatedAt: Date
-  // Joined data
+  updatedAt: Date | null
   menuItem?: MenuItem
   preparedByMember?: TeamMember
 }
 
 export interface Bill {
-  id: string
-  billId: string
-  cartId: string
-  businessId: string
+  id: number
+  cartId: number
+  businessId: number
   subtotal: number
   taxPercent: number
   taxAmount: number
@@ -185,37 +222,79 @@ export interface Bill {
   paidAmount: number
   paymentMode: PaymentMethod | null
   status: BillStatus
-  paymentRef: string
+  paymentRef: string | null
+  isActive: boolean
   createdAt: Date
-  updatedAt: Date
-  // Joined data
+  updatedAt: Date | null
   items?: BillItem[]
+  cart?: Cart
 }
 
 export interface BillItem {
-  id: string
-  billItemId: string
-  billId: string
-  cartItemId: string
+  id: number
+  billId: number
+  cartItemId: number
   itemName: string
   quantity: number
   unitPrice: number
   totalPrice: number
-  paidByUserId: string | null
+  paidByUserId: number | null
   status: BillItemStatus
+  isActive: boolean
   createdAt: Date
-  updatedAt: Date
-  // Joined data
+  updatedAt: Date | null
   paidByUser?: User
+  cartItem?: CartItem
 }
 
 export interface FAQ {
-  id: string
-  businessId: string
+  id: number
+  businessId: number
   question: string
   answer: string
+  isActive: boolean
   createdAt: Date
-  updatedAt: Date
+  updatedAt: Date | null
+}
+
+export interface AssistantSession {
+  id: number
+  sessionId: string
+  assistantType: AssistantType
+  deviceId: string | null
+  phoneNumber: string | null
+  status: ConversationStatus
+  context: Record<string, unknown>
+  startedAt: Date
+  endedAt: Date | null
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date | null
+  messages?: ConversationMessage[]
+}
+
+export interface ConversationMessage {
+  id: number
+  sessionId: number
+  role: 'user' | 'assistant'
+  content: string
+  audioUrl: string | null
+  intent: string | null
+  entities: Record<string, unknown>
+  confidence: number | null
+  createdAt: Date
+}
+
+export interface Device {
+  id: number
+  deviceId: string
+  name: string | null
+  deviceType: DeviceType | null
+  location: string | null
+  isActive: boolean
+  lastSeen: Date | null
+  createdAt: Date
+  updatedAt: Date | null
 }
 
 // ==================== API TYPES ====================
@@ -241,42 +320,79 @@ export interface PaginatedResponse<T> {
 
 // ==================== REQUEST TYPES ====================
 
+export interface CreateCartRequest {
+  businessId: number
+  sessionId?: string
+  deviceId?: string
+  userId?: number
+  resourceId?: number
+  customerName?: string
+  customerPhone?: string
+  source?: OrderSource
+}
+
 export interface AddToCartRequest {
-  cartId: string
-  itemId: string
+  cartId: number
+  itemId: number
   quantity: number
   notes?: string
 }
 
 export interface UpdateCartItemRequest {
-  cartItemId: string
+  cartItemId: number
   quantity?: number
   notes?: string
 }
 
 export interface ConfirmOrderRequest {
-  cartId: string
+  cartId: number
   customerName?: string
   customerPhone?: string
+  resourceId?: number
 }
 
 export interface UpdateCartItemStatusRequest {
-  cartItemId: string
+  cartItemId: number
   status: CartItemStatus
-  preparedBy?: string
+  preparedBy?: number
+}
+
+export interface CreateBillRequest {
+  cartId: number
+  taxPercent?: number
+  discountAmount?: number
+  serviceCharge?: number
 }
 
 export interface ProcessPaymentRequest {
-  billId: string
+  billId: number
   amount: number
   paymentMode: PaymentMethod
   paymentRef?: string
 }
 
 export interface SplitPaymentRequest {
-  billId: string
-  billItemIds: string[]
-  paidByUserId: string
+  billId: number
+  billItemIds: number[]
+  paidByUserId: number
   amount: number
   paymentMode: PaymentMethod
+}
+
+// ==================== MESSAGE CONTENT TYPES (FOR ASSISTANT) ====================
+
+export interface MessageContent {
+  type: 'text' | 'menu-items' | 'cart-summary' | 'order-confirmed' | 'suggestions'
+  text?: string
+  items?: MenuItem[]
+  cartItems?: { name: string; quantity: number; price: number }[]
+  cartTotal?: number
+  orderNumber?: string
+  suggestions?: string[]
+}
+
+export interface ChatMessage {
+  role: 'user' | 'assistant'
+  content: MessageContent[]
+  timestamp?: Date
 }
