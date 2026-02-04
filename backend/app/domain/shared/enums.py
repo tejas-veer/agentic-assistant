@@ -20,7 +20,7 @@ class ResourceType(str, Enum):
 
 class ResourceStatus(str, Enum):
     AVAILABLE = "available"
-    OCCUPIED = "occupied"
+    ASSIGNED = "assigned"
     RESERVED = "reserved"
     MAINTENANCE = "maintenance"
 

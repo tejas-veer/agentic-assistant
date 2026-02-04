@@ -108,7 +108,7 @@ async def occupy_resource(
     if resource.status != ResourceStatus.AVAILABLE:
         raise HTTPException(status_code=400, detail=f"Resource is not available (current status: {resource.status.value})")
     
-    updated = await repo.update_status(resource_id, ResourceStatus.OCCUPIED)
+    updated = await repo.update_status(resource_id, ResourceStatus.ASSIGNED)
     return ApiResponse(success=True, data=serialize_resource(updated), message="Resource marked as occupied")
 
 

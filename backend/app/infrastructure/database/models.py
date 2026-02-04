@@ -15,17 +15,26 @@ def generate_uuid():
     return str(uuid.uuid4())
 
 
+def PgEnum(enum_class, **kwargs):
+    """Create a PostgreSQL-compatible enum column that uses enum values (lowercase) instead of names (uppercase)"""
+    return SQLEnum(
+        enum_class,
+        values_callable=lambda x: [e.value for e in x],
+        **kwargs
+    )
+
+
 class BusinessModel(Base):
     __tablename__ = "businesses"
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     name = Column(String(200), nullable=False)
-    type = Column(SQLEnum(BusinessType), nullable=False)
+    type = Column(PgEnum(BusinessType), nullable=False)
     intents = Column(String(100))
     requires_approval = Column(Boolean, default=True)
-    payment_flow = Column(SQLEnum(PaymentFlow), default=PaymentFlow.POST_SERVICE)
+    payment_flow = Column(PgEnum(PaymentFlow), default=PaymentFlow.POST_SERVICE)
     payment_modes = Column(String(100))
-    resource_type = Column(SQLEnum(ResourceType))
+    resource_type = Column(PgEnum(ResourceType))
     contact_phone = Column(String(20))
     timings = Column(String(100))
     is_active = Column(Boolean, default=True)
@@ -46,11 +55,11 @@ class ResourceModel(Base):
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False)
-    type = Column(SQLEnum(ResourceType), nullable=False)
+    type = Column(PgEnum(ResourceType), nullable=False)
     name = Column(String(200), nullable=False)
     capacity = Column(Integer, default=1)
     meta_json = Column(JSON, default=dict)
-    status = Column(SQLEnum(ResourceStatus), default=ResourceStatus.AVAILABLE)
+    status = Column(PgEnum(ResourceStatus), default=ResourceStatus.AVAILABLE)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
@@ -125,8 +134,8 @@ class TeamMemberModel(Base):
     id = Column(String(36), primary_key=True, default=generate_uuid)
     business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False)
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
-    role = Column(SQLEnum(UserRole), default=UserRole.STAFF)
-    status = Column(SQLEnum(TeamMemberStatus), default=TeamMemberStatus.ACTIVE)
+    role = Column(PgEnum(UserRole), default=UserRole.STAFF)
+    status = Column(PgEnum(TeamMemberStatus), default=TeamMemberStatus.ACTIVE)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
@@ -141,7 +150,7 @@ class AddressModel(Base):
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
-    type = Column(SQLEnum(AddressType), nullable=False)
+    type = Column(PgEnum(AddressType), nullable=False)
     address_line1 = Column(String(500), nullable=False)
     city = Column(String(100), nullable=False)
     pincode = Column(String(20), nullable=False)
@@ -161,7 +170,7 @@ class CartModel(Base):
     device_id = Column(String(100))
     user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
     business_id = Column(String(36), ForeignKey("businesses.id"), nullable=False)
-    intent = Column(SQLEnum(IntentType), default=IntentType.FOOD_ORDER)
+    intent = Column(PgEnum(IntentType), default=IntentType.FOOD_ORDER)
     resource_id = Column(String(36), ForeignKey("resources.id"), nullable=True)
     customer_name = Column(String(200))
     customer_phone = Column(String(20))
@@ -169,8 +178,8 @@ class CartModel(Base):
     subtotal = Column(Numeric(10, 2), default=0)
     tax = Column(Numeric(10, 2), default=0)
     total = Column(Numeric(10, 2), default=0)
-    status = Column(SQLEnum(CartStatus), default=CartStatus.DRAFT)
-    source = Column(SQLEnum(OrderSource), default=OrderSource.APP)
+    status = Column(PgEnum(CartStatus), default=CartStatus.DRAFT)
+    source = Column(PgEnum(OrderSource), default=OrderSource.APP)
     notes = Column(Text)
     estimated_ready_time = Column(Integer)
     assistant_session_id = Column(String(36), ForeignKey("assistant_sessions.id"), nullable=True)
@@ -197,7 +206,7 @@ class CartItemModel(Base):
     unit_price = Column(Numeric(10, 2), nullable=False)
     total_price = Column(Numeric(10, 2), nullable=False)
     notes = Column(Text)
-    status = Column(SQLEnum(CartItemStatus), default=CartItemStatus.DRAFT)
+    status = Column(PgEnum(CartItemStatus), default=CartItemStatus.DRAFT)
     prepared_by = Column(String(36), ForeignKey("team_members.id"), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -222,8 +231,8 @@ class BillModel(Base):
     service_charge = Column(Numeric(10, 2), default=0)
     total_amount = Column(Numeric(10, 2), default=0)
     paid_amount = Column(Numeric(10, 2), default=0)
-    payment_mode = Column(SQLEnum(PaymentMethod), nullable=True)
-    status = Column(SQLEnum(BillStatus), default=BillStatus.PENDING)
+    payment_mode = Column(PgEnum(PaymentMethod), nullable=True)
+    status = Column(PgEnum(BillStatus), default=BillStatus.PENDING)
     payment_ref = Column(String(100))
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -245,7 +254,7 @@ class BillItemModel(Base):
     unit_price = Column(Numeric(10, 2), nullable=False)
     total_price = Column(Numeric(10, 2), nullable=False)
     paid_by_user_id = Column(String(36), ForeignKey("users.id"), nullable=True)
-    status = Column(SQLEnum(BillItemStatus), default=BillItemStatus.UNPAID)
+    status = Column(PgEnum(BillItemStatus), default=BillItemStatus.UNPAID)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, onupdate=datetime.utcnow)
@@ -274,10 +283,10 @@ class AssistantSessionModel(Base):
 
     id = Column(String(36), primary_key=True, default=generate_uuid)
     session_id = Column(String(100), unique=True, nullable=False)
-    assistant_type = Column(SQLEnum(AssistantType), nullable=False)
+    assistant_type = Column(PgEnum(AssistantType), nullable=False)
     device_id = Column(String(100))
     phone_number = Column(String(20))
-    status = Column(SQLEnum(ConversationStatus), default=ConversationStatus.ACTIVE)
+    status = Column(PgEnum(ConversationStatus), default=ConversationStatus.ACTIVE)
     context = Column(JSON, default=dict)
     started_at = Column(DateTime, default=datetime.utcnow)
     ended_at = Column(DateTime)
@@ -311,7 +320,7 @@ class DeviceModel(Base):
     id = Column(String(36), primary_key=True, default=generate_uuid)
     device_id = Column(String(100), unique=True, nullable=False)
     name = Column(String(200))
-    device_type = Column(SQLEnum(DeviceType))
+    device_type = Column(PgEnum(DeviceType))
     location = Column(String(200))
     is_active = Column(Boolean, default=True)
     last_seen = Column(DateTime)
